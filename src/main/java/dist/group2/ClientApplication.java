@@ -1,5 +1,6 @@
 package dist.group2;
 
+import dist.group2.agents.SyncAgent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,10 +13,13 @@ import java.net.InetAddress;
 public class ClientApplication {
     public static ApplicationContext context;
     private DiscoveryClient discoveryClient;
+    private SyncAgent syncAgent;
 
     @Autowired
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
         this.discoveryClient = discoveryClient;
+        this.syncAgent = new SyncAgent();
+
         String name = InetAddress.getLocalHost().getHostName();
         String IPAddress = InetAddress.getLocalHost().getHostAddress();
 
