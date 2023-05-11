@@ -14,8 +14,8 @@ import java.util.Arrays;
 
 @Service
 public class DiscoveryClient {
-    private int previousID;
-    private int nextID;
+    private static int previousID;
+    private static int nextID;
     private String name;
     private String IPAddress;
     private int namingPort;
@@ -31,6 +31,14 @@ public class DiscoveryClient {
         this.unicastPort = unicastPort;
         this.previousID = hashValue(name);    // Set previousID to its own ID
         this.nextID = hashValue(name);        // Set nextID to its own ID
+    }
+
+    public static int getPreviousID() {
+        return previousID;
+    }
+
+    public static int getNextID() {
+        return nextID;
     }
 
     public static Integer hashValue(String name) {
