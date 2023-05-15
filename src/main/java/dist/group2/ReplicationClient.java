@@ -24,10 +24,10 @@ public class ReplicationClient implements Runnable{
     private String nodeName = InetAddress.getLocalHost().getHostName();
     private String IPAddress = InetAddress.getLocalHost().getHostAddress();UnicastReceivingChannelAdapter fileAdapter;
     WatchService file_daemon = FileSystems.getDefault().newWatchService();
-    private final Path local_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\local_files"));  //Stores the local files that need to be replicated
-    private final Path replicated_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\replicated_files"));  //Stores the local files that need to be replicated
+    private static final Path local_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\local_files"));  //Stores the local files that need to be replicated
+    private static final Path replicated_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\replicated_files"));  //Stores the local files that need to be replicated
 
-    private final Path log_path = Path.of(new File("").getAbsolutePath().concat("\\src\\log_files"));  //Stores the local files that need to be replicated
+    private static final Path log_path = Path.of(new File("").getAbsolutePath().concat("\\src\\log_files"));  //Stores the local files that need to be replicated
 
     public ReplicationClient(int fileUnicastPort) throws IOException {
         this.fileUnicastPort = fileUnicastPort;
@@ -35,6 +35,18 @@ public class ReplicationClient implements Runnable{
                 StandardWatchEventKinds.ENTRY_CREATE,
                 StandardWatchEventKinds.ENTRY_MODIFY,
                 StandardWatchEventKinds.ENTRY_DELETE);
+    }
+
+    public Path getLocalFilePath() {
+        return local_file_path;
+    }
+
+    public Path getReplicatedFilePath() {
+        return replicated_file_path;
+    }
+
+    public Path getLogFilePath() {
+        return log_path;
     }
 
     // Create files to store on this node
