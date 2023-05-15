@@ -2,16 +2,15 @@ package dist.group2.agents;
 
 import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import net.minidev.json.JSONArray;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 @RestController
 public class AgentController {
 
     private RestTemplate restTemplate = new RestTemplate();
+    private final SyncAgent syncAgent = new SyncAgent();
 
     @PostMapping("/execute-agent")
     public void executeAgent(@RequestBody FailureAgent failureAgent) {
@@ -36,5 +35,10 @@ public class AgentController {
         // Execute the REST method on the next node
         String nextNodeUrl = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         restTemplate.postForObject(nextNodeUrl + "/execute-agent", failureAgent, Void.class);
+    }
+
+    @GetMapping("/sync")
+    public JSONArray listFiles() {
+        return this.syncAgent.localFilesToSend();
     }
 }
