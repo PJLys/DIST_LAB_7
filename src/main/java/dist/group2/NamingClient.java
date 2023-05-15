@@ -32,6 +32,7 @@ public class NamingClient {
             System.out.println("<" + name + "> - Add node with name " + nodeName + " and IP address " + IPAddress);
             restTemplate.postForObject(url, requestBody, Void.class);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new RuntimeException("A hash collision occurred for node " + nodeName);
         }
     }
