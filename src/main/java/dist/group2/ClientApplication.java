@@ -39,7 +39,7 @@ public class ClientApplication {
         System.out.println("<---> " + name + " Instantiated with IP " + IPAddress + " <--->");
 //        replicationClient.addFiles();
         //discoveryClient.bootstrap();
-        NamingClient.setBaseUrl("172.28.0.5");
+        NamingClient.setBaseUrl("http://172.28.0.5:8080/api/naming");
 //        NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
         NamingClient.setName(name);
 //        replicationClient.replicateFiles();
