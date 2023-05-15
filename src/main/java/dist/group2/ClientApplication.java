@@ -46,6 +46,9 @@ public class ClientApplication {
 
 //        Thread replicationthread = new Thread(replicationClient);
 //        replicationthread.start();
+        NamingClient.addNode("testnode", "172.28.0.6");
+        String ip = NamingClient.findFile("Helloworld");
+        System.out.println(ip);
     }
 
     public static void main(String[] args) {
