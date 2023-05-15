@@ -85,3 +85,4 @@ public class FailureAgent implements Runnable, Serializable {
         return (DiscoveryClient.getCurrentID() == startingNodeId);
     }
 }
+

@@ -1,5 +1,8 @@
 package dist.group2;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -19,30 +22,33 @@ public class NamingClient {
     }
 
     public static void addNode(String nodeName, String IPAddress) {
-        String url = baseUrl;
+        String url = baseUrl + "/nodes";
 
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("nodeName", nodeName);
         requestBody.put("IPAddress", IPAddress);
+
         try {
             System.out.println("<" + name + "> - Add node with name " + nodeName + " and IP address " + IPAddress);
             restTemplate.postForObject(url, requestBody, Void.class);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new RuntimeException("A hash collision occurred for node " + nodeName);
         }
     }
 
     public static void deleteNode(String nodeName) {
-        String url = baseUrl + "/" + nodeName;
+        String url = baseUrl + "/nodes/" + nodeName;
         restTemplate.delete(url);
         System.out.println("<" + name + "> - Deleted node with name " + nodeName);
     }
 
 
     public static String findFile(String fileName) {
-        String url = baseUrl + "?fileName=" + fileName;
+        String url = baseUrl + "/files/" + fileName;
         try {
-            String IPAddress = restTemplate.getForObject(url, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            String IPAddress = response.getBody();
             System.out.println("<" + name + "> - " + fileName + " is stored at IPAddress " + IPAddress);
             return IPAddress;
         } catch (Exception e) {
@@ -52,9 +58,10 @@ public class NamingClient {
     }
 
     public static String getIPAddress(int nodeID) {
-        String url = baseUrl + "/translate" + "?nodeID=" + nodeID;
+        String url = baseUrl + "/nodes/" + nodeID + "/ip";
         try {
-            String IPAddress = restTemplate.getForObject(url, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            String IPAddress = response.getBody();
             System.out.println("<" + name + "> - Node with ID " + nodeID + " has IPAddress " + IPAddress);
             return IPAddress;
         } catch (Exception e) {
@@ -65,7 +72,8 @@ public class NamingClient {
     public static int findFileNodeID(String fileName) {
         String url = baseUrl + "/nodeID" + "?fileName=" + fileName;
         try {
-            int nodeID = restTemplate.getForObject(url, Integer.class);
+            ResponseEntity<Integer> response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, Integer.class);
+            int nodeID = response.getBody();
             System.out.println("<" + name + "> - " + fileName + " is stored at nodeID " + nodeID);
             return nodeID;
         } catch (Exception e) {
@@ -73,4 +81,3 @@ public class NamingClient {
         }
     }
 }
-

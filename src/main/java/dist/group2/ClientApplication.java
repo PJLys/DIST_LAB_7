@@ -16,6 +16,7 @@ public class ClientApplication {
     private SyncAgent syncAgent;
 
     @Autowired
+    public ClientApplication() throws IOException {
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
         this.discoveryClient = discoveryClient;
         this.syncAgent = new SyncAgent();
@@ -32,18 +33,19 @@ public class ClientApplication {
 
         Communicator.init(multicastGroup, multicastPort, fileUnicastPort, multicastIP, unicastPortDiscovery);
         this.discoveryClient.init(name, IPAddress, namingPort, unicastPortDiscovery);
-//        ReplicationClient replicationClient = new ReplicationClient(fileUnicastPort);
+        ReplicationClient replicationClient = new ReplicationClient(fileUnicastPort);
 
 
         System.out.println("<---> " + name + " Instantiated with IP " + IPAddress + " <--->");
-//        replicationClient.addFiles();
+        replicationClient.addFiles();
         discoveryClient.bootstrap();
         NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
         NamingClient.setName(name);
-//        replicationClient.replicateFiles();
+        replicationClient.replicateFiles();
 
-//        Thread replicationthread = new Thread(replicationClient);
-//        replicationthread.start();
+        Thread replicationthread = new Thread(replicationClient);
+        replicationthread.start();
+
     }
 
     public static void main(String[] args) {
