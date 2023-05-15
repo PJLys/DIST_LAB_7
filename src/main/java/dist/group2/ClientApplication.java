@@ -12,8 +12,8 @@ import java.net.InetAddress;
 @SpringBootApplication
 public class ClientApplication {
     public static ApplicationContext context;
-    private DiscoveryClient discoveryClient;
-    private SyncAgent syncAgent;
+    //private DiscoveryClient discoveryClient;
+    //private SyncAgent syncAgent;
 
     @Autowired
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
@@ -38,6 +38,7 @@ public class ClientApplication {
         System.out.println("<---> " + name + " Instantiated with IP " + IPAddress + " <--->");
 //        replicationClient.addFiles();
         //discoveryClient.bootstrap();
+        NamingClient.setBaseUrl("172.28.0.5");
         NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
         NamingClient.setName(name);
 //        replicationClient.replicateFiles();
