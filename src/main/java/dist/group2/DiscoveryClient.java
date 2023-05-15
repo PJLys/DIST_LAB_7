@@ -1,9 +1,7 @@
 package dist.group2;
 
 import jakarta.annotation.PreDestroy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
-import org.springframework.context.ApplicationContext;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
@@ -16,6 +14,8 @@ import java.util.Arrays;
 public class DiscoveryClient {
     private static int previousID;
     private static int nextID;
+
+    private static int currentID;
     private String name;
     private String IPAddress;
     private int namingPort;
@@ -29,8 +29,13 @@ public class DiscoveryClient {
         this.baseUrl = null;
         this.namingPort = namingPort;
         this.unicastPort = unicastPort;
-        this.previousID = hashValue(name);    // Set previousID to its own ID
-        this.nextID = hashValue(name);        // Set nextID to its own ID
+        currentID = hashValue(name);
+        previousID = currentID;    // Set previousID to its own ID
+        nextID = currentID;        // Set nextID to its own ID
+    }
+
+    public static int getCurrentID() {
+        return currentID;
     }
 
     public static int getPreviousID() {
@@ -143,7 +148,6 @@ public class DiscoveryClient {
         String newNodeIP = RxData.split("\\|")[1];
 
         int newNodeID = hashValue(newNodeName);
-        int currentID = hashValue(name);
 
         sleep(1000);    // Wait so the responses follow that of the naming server
 

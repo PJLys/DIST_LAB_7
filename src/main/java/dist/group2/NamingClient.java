@@ -61,5 +61,16 @@ public class NamingClient {
             throw new RuntimeException("Failed to find IPAddress of node with ID " + nodeID);
         }
     }
+
+    public static int findFileNodeID(String fileName) {
+        String url = baseUrl + "/nodeID" + "?fileName=" + fileName;
+        try {
+            int nodeID = restTemplate.getForObject(url, Integer.class);
+            System.out.println("<" + name + "> - " + fileName + " is stored at nodeID " + nodeID);
+            return nodeID;
+        } catch (Exception e) {
+            throw new RuntimeException("There are no nodes in the database");
+        }
+    }
 }
 
