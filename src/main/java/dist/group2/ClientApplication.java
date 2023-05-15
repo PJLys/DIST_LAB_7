@@ -17,27 +17,27 @@ public class ClientApplication {
 
     @Autowired
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
-        this.discoveryClient = discoveryClient;
-        this.syncAgent = new SyncAgent();
+        //this.discoveryClient = discoveryClient;
+        //this.syncAgent = new SyncAgent();
 
         String name = InetAddress.getLocalHost().getHostName();
         String IPAddress = InetAddress.getLocalHost().getHostAddress();
 
-        String multicastIP = "224.0.0.5";       // A random IP in the 224.0.0.0 to 239.255.255.255 range (reserved for multicast)
-        InetAddress multicastGroup = InetAddress.getByName(multicastIP);
-        int multicastPort = 4446;
-        int unicastPortDiscovery = 4449;
-        int namingPort = 8080;
-        int fileUnicastPort = 4451;
+        //String multicastIP = "224.0.0.5";       // A random IP in the 224.0.0.0 to 239.255.255.255 range (reserved for multicast)
+        //InetAddress multicastGroup = InetAddress.getByName(multicastIP);
+        //int multicastPort = 4446;
+        //int unicastPortDiscovery = 4449;
+        //int namingPort = 8080;
+        //int fileUnicastPort = 4451;
 
-        Communicator.init(multicastGroup, multicastPort, fileUnicastPort, multicastIP, unicastPortDiscovery);
-        this.discoveryClient.init(name, IPAddress, namingPort, unicastPortDiscovery);
+        //Communicator.init(multicastGroup, multicastPort, fileUnicastPort, multicastIP, unicastPortDiscovery);
+        //this.discoveryClient.init(name, IPAddress, namingPort, unicastPortDiscovery);
 //        ReplicationClient replicationClient = new ReplicationClient(fileUnicastPort);
 
 
         System.out.println("<---> " + name + " Instantiated with IP " + IPAddress + " <--->");
 //        replicationClient.addFiles();
-        discoveryClient.bootstrap();
+        //discoveryClient.bootstrap();
         NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
         NamingClient.setName(name);
 //        replicationClient.replicateFiles();
