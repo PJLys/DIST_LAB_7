@@ -16,7 +16,8 @@ public class ClientApplication {
     //private SyncAgent syncAgent;
 
     @Autowired
-    public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
+    public ClientApplication() throws IOException {
+    //public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
         //this.discoveryClient = discoveryClient;
         //this.syncAgent = new SyncAgent();
 
@@ -39,7 +40,7 @@ public class ClientApplication {
 //        replicationClient.addFiles();
         //discoveryClient.bootstrap();
         NamingClient.setBaseUrl("172.28.0.5");
-        NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
+//        NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
         NamingClient.setName(name);
 //        replicationClient.replicateFiles();
 
