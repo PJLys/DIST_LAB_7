@@ -79,4 +79,15 @@ public class NamingClient {
             throw new RuntimeException("There are no nodes in the database");
         }
     }
+
+    public static String getIPAddressPreviousNode(int nodeID) {
+        String url = baseUrl + "/translate/previousNode" + "?nodeID=" + nodeID;
+        try {
+            String IPAddress = restTemplate.getForObject(url, String.class);
+            System.out.println("<" + name + "> - Previous node of node with ID " + nodeID + " has IPAddress " + IPAddress);
+            return IPAddress;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find IPAddress of previous node of node with ID " + nodeID);
+        }
+    }
 }
