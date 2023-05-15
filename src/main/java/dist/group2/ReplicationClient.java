@@ -37,15 +37,15 @@ public class ReplicationClient implements Runnable{
                 StandardWatchEventKinds.ENTRY_DELETE);
     }
 
-    public Path getLocalFilePath() {
+    public static Path getLocalFilePath() {
         return local_file_path;
     }
 
-    public Path getReplicatedFilePath() {
+    public static Path getReplicatedFilePath() {
         return replicated_file_path;
     }
 
-    public Path getLogFilePath() {
+    public static Path getLogFilePath() {
         return log_path;
     }
 
