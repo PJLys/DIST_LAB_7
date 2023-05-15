@@ -14,14 +14,13 @@ import java.util.Arrays;
 public class DiscoveryClient {
     private static int previousID;
     private static int nextID;
-
     private static int currentID;
-    private String name;
+    private static String name;
     private String IPAddress;
     private int namingPort;
     private int unicastPort;
     private String baseUrl;
-    private boolean shuttingDown = false;
+    private static boolean shuttingDown = false;
 
     public void init(String name, String IPAddress, int unicastPort, int namingPort) {
         this.name = name;
@@ -46,6 +45,7 @@ public class DiscoveryClient {
         return nextID;
     }
 
+
     public static Integer hashValue(String name) {
         return Math.abs(name.hashCode()) % 32769;
     }
@@ -55,7 +55,6 @@ public class DiscoveryClient {
     }
 
     public void bootstrap() {
-        failure();
         System.out.println("<---> " + name + " Bootstrap <--->");
         // Send multicast to other nodes and naming server
         String data = name + "|" + IPAddress;
@@ -136,9 +135,9 @@ public class DiscoveryClient {
         NamingClient.deleteNode(name);
     }
 
-    public void failure() {
+    public static void failure() {
         if (!shuttingDown) {
-            System.out.println("<---> " + this.name + " Failure <--->");
+            System.out.println("<---> " + DiscoveryClient.name + " Failure <--->");
             SpringApplication.exit(ClientApplication.context);
         }
     }
@@ -148,6 +147,7 @@ public class DiscoveryClient {
         String newNodeIP = RxData.split("\\|")[1];
 
         int newNodeID = hashValue(newNodeName);
+        int currentID = hashValue(name);
 
         sleep(1000);    // Wait so the responses follow that of the naming server
 

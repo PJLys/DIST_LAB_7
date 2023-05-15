@@ -16,7 +16,6 @@ public class ClientApplication {
     private SyncAgent syncAgent;
 
     @Autowired
-    public ClientApplication() throws IOException {
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
         this.discoveryClient = discoveryClient;
         this.syncAgent = new SyncAgent();
@@ -43,8 +42,18 @@ public class ClientApplication {
         NamingClient.setName(name);
         replicationClient.replicateFiles();
 
+        System.out.println(1);
+        replicationClient.addFiles();
+        System.out.println(2);
+        replicationClient.setFileDirectoryWatchDog();
+        System.out.println(3);
+        replicationClient.replicateFiles();
+        System.out.println(4);
+
         Thread replicationthread = new Thread(replicationClient);
+        System.out.println(5);
         replicationthread.start();
+        System.out.println(6);
 
     }
 

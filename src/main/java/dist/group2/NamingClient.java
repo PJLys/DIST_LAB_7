@@ -53,7 +53,6 @@ public class NamingClient {
             return IPAddress;
         } catch (Exception e) {
             throw new RuntimeException("There are no nodes in the database");
-            // Failure
         }
     }
 
