@@ -9,10 +9,10 @@ import java.util.Map;
 
 public class Client {
     private final Map<String,Character> networkFiles = new HashMap<>();
-    public void readfile(String filename) {
+    public void readfile(String filename) throws RuntimeException{
         // Check if the file is locked
         if (this.getLock(filename)=='w') {
-            //throw new Lock
+            throw new RuntimeException("File is locked for writing!");
         }
 
         // Find file location
@@ -32,7 +32,10 @@ public class Client {
     private void request(String ipaddr, String filename, char method) {
         switch (method) {
             case 'r' -> {
-                // Request
+                // Request read
+            }
+            case 'w' -> {
+                // Request write
             }
         }
         throw new NotYetImplementedException();
@@ -42,7 +45,7 @@ public class Client {
      * Handle an incoming file request from another node
      * @param nodename name of the requesting node
      * @param filename name of the file that
-     * @param method
+     * @param method action of the requester
      */
     private void incomingRequest(String nodename, String filename, char method) {
         this.handleLock(filename, method);
