@@ -2,7 +2,7 @@
 
 ## About
 
-In this project we will expand the capabilities of our network to be able to replicate local client files in other nodes using the hashing functionalities provided by the naming service.
+In this project we will add agents that sync the local files to the network files in order to manage R/W and node failures.
 
 ## Timeline
 
