@@ -1,4 +1,4 @@
-# DIST LAB 5 : Replication
+# DIST LAB 6 : Agents
 
 ## About
 
