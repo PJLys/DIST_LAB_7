@@ -69,7 +69,7 @@ public class NamingClient {
     }
 
     public static int findFileNodeID(String fileName) {
-        String url = baseUrl + "/nodeID" + "?fileName=" + fileName;
+        String url = baseUrl + "/files/" + fileName + "/nodeID";
         try {
             ResponseEntity<Integer> response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, Integer.class);
             int nodeID = response.getBody();
@@ -81,7 +81,7 @@ public class NamingClient {
     }
 
     public static String getIPAddressPreviousNode(int nodeID) {
-        String url = baseUrl + "/translate/previousNode" + "?nodeID=" + nodeID;
+        String url = baseUrl + "/nodes/" + nodeID + "/previousNode";
         try {
             String IPAddress = restTemplate.getForObject(url, String.class);
             System.out.println("<" + name + "> - Previous node of node with ID " + nodeID + " has IPAddress " + IPAddress);
