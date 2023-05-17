@@ -4,7 +4,6 @@ import jakarta.annotation.PreDestroy;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
-import org.hibernate.cfg.NotYetImplementedException;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.messaging.Message;
@@ -14,12 +13,12 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.rmi.UnexpectedException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 
-public class ReplicationClient implements Runnable{
+public class ReplicationClient implements Runnable {
+    private static boolean failed = false;
     private final int fileUnicastPort;
     private String nodeName = InetAddress.getLocalHost().getHostName();
     private int nodeID = DiscoveryClient.hashValue(nodeName);
@@ -36,6 +35,10 @@ public class ReplicationClient implements Runnable{
         createDirectory(local_file_path);
         createDirectory(replicated_file_path);
         createDirectory(log_path);
+    }
+
+    public static void setFailed(boolean failed) {
+        ReplicationClient.failed = failed;
     }
 
     public void createDirectory(Path path) {
@@ -151,55 +154,57 @@ public class ReplicationClient implements Runnable{
 
     @PreDestroy
     public void shutdown() throws IOException {
-        System.out.println("NODE ENTERING SHUTDOWN - Local files will be removed and replicated files will be replicated.");
+        if (!failed) {
+            System.out.println("NODE ENTERING SHUTDOWN - Local files will be removed and replicated files will be replicated.");
 
-        // Find the IP address of the previous node
-        int previousNodeID = DiscoveryClient.getPreviousID();
-        String previousNodeIP = NamingClient.getIPAddress(previousNodeID);
+            // Find the IP address of the previous node
+            int previousNodeID = DiscoveryClient.getPreviousID();
+            String previousNodeIP = NamingClient.getIPAddress(previousNodeID);
 
-        // If this node is the only one in the network, return from this method
-        if (previousNodeID == this.nodeID) {
-            System.out.println("This node is the only one in the network. No files have to be sent.");
-            return;
-        }
+            // If this node is the only one in the network, return from this method
+            if (previousNodeID == this.nodeID) {
+                System.out.println("This node is the only one in the network. No files have to be sent.");
+                return;
+            }
 
-        // Get a list of the files in both directories
-        File[] localFiles = new File(local_file_path.toString()).listFiles();
-        File[] replicatedFiles = new File(local_file_path.toString()).listFiles();
+            // Get a list of the files in both directories
+            File[] localFiles = new File(local_file_path.toString()).listFiles();
+            File[] replicatedFiles = new File(local_file_path.toString()).listFiles();
 
-        // Test if one of the directories cannot be found
-        if (localFiles == null || replicatedFiles == null) {
-            System.out.println("ERROR - One of the file directories cannot be found!");
-            DiscoveryClient.failure();
-        }
+            // Test if one of the directories cannot be found
+            if (localFiles == null || replicatedFiles == null) {
+                System.out.println("ERROR - One of the file directories cannot be found!");
+                ClientApplication.failure();
+            }
 
-        // Send a warning to the owners of these files so they can delete their replicated versions
-        for (File file : localFiles) {
-            // Get info of the file
-            String fileName = file.getName();
-            String filePath = local_file_path.toString() +  + '\\' + fileName;
+            // Send a warning to the owners of these files so they can delete their replicated versions
+            for (File file : localFiles) {
+                // Get info of the file
+                String fileName = file.getName();
+                String filePath = local_file_path.toString() + +'\\' + fileName;
 
-            // The destination is the owner of the file instead of the previous node
-            String destinationIP = NamingClient.findFile(fileName);
+                // The destination is the owner of the file instead of the previous node
+                String destinationIP = NamingClient.findFile(fileName);
 
-            System.out.println("Send warning to delete file " + file.getName() + " to node " + destinationIP);
+                System.out.println("Send warning to delete file " + file.getName() + " to node " + destinationIP);
 
-            // Warn the owner of the file to delete the replicated file
-            sendFileToNode(filePath, null, destinationIP, "ENTRY_DELETE");
-        }
+                // Warn the owner of the file to delete the replicated file
+                sendFileToNode(filePath, null, destinationIP, "ENTRY_DELETE");
+            }
 
-        // Send the replicated files and their logs to the previous node which will become the new owner of the file.
-        // When the previous node already stores this file locally -> send it to its previous node
-        for (File file : replicatedFiles) {
-            System.out.println("Replicating file " + file.getName() + " to node " + previousNodeIP);
+            // Send the replicated files and their logs to the previous node which will become the new owner of the file.
+            // When the previous node already stores this file locally -> send it to its previous node
+            for (File file : replicatedFiles) {
+                System.out.println("Replicating file " + file.getName() + " to node " + previousNodeIP);
 
-            // Get info of the file
-            String fileName = file.getName();
-            String filePath = replicated_file_path.toString() +  + '\\' + fileName;
-            String logPath = log_path.toString() +  + '\\' + fileName + ".log";
+                // Get info of the file
+                String fileName = file.getName();
+                String filePath = replicated_file_path.toString() + +'\\' + fileName;
+                String logPath = log_path.toString() + +'\\' + fileName + ".log";
 
-            // Transfer the file and its log to the previous node
-            sendFileToNode(filePath, logPath, previousNodeIP, "ENTRY_SHUTDOWN_REPLICATE");
+                // Transfer the file and its log to the previous node
+                sendFileToNode(filePath, logPath, previousNodeIP, "ENTRY_SHUTDOWN_REPLICATE");
+            }
         }
     }
 
@@ -334,7 +339,7 @@ public class ReplicationClient implements Runnable{
             Files.deleteIfExists(Path.of(log_file_path));
         } else if (Objects.equals(extra_message, "OVERFLOW")) {
             System.out.println("ERROR - Overflow received when watching for events in the local_files directory!");
-            DiscoveryClient.failure();
+            ClientApplication.failure();
         }
 
         return 0;
@@ -442,7 +447,7 @@ public class ReplicationClient implements Runnable{
         // Test if the local directory is found
         if (localFiles == null) {
             System.out.println("ERROR - The local directory cannot be found!");
-            DiscoveryClient.failure();
+            ClientApplication.failure();
         }
 
         // Loop through the files and search for the received file name

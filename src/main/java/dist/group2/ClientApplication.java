@@ -1,5 +1,6 @@
 package dist.group2;
 
+import dist.group2.agents.AgentController;
 import dist.group2.agents.SyncAgent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -14,6 +15,7 @@ public class ClientApplication {
     public static ApplicationContext context;
     private DiscoveryClient discoveryClient;
     private SyncAgent syncAgent;
+    private static AgentController agentController;
 
     @Autowired
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
@@ -55,6 +57,12 @@ public class ClientApplication {
         replicationthread.start();
         System.out.println(6);
 
+    }
+
+    public static void failure() {
+        ReplicationClient.setFailed(true);      // Prevent shutdown procedure from executing, as the failure agents handles it
+        agentController.startFailureAgent(DiscoveryClient.getCurrentID(), DiscoveryClient.getCurrentID());
+        SpringApplication.exit(context);
     }
 
     public static void main(String[] args) {
