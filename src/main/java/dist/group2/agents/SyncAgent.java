@@ -21,6 +21,11 @@ import java.util.Optional;
  * @attribute localFiles holds the names of files on the node and if they're accessible
 */
 public class SyncAgent implements Runnable, Serializable {
+    private Map<String, Optional<Boolean>> networkfiles;
+    public SyncAgent(Map<String,Optional<Boolean>> networkfiles) {
+        this.networkfiles = networkfiles;
+    }
+
     /**
      * Check for files, and then yield the CPU
      */
@@ -37,9 +42,16 @@ public class SyncAgent implements Runnable, Serializable {
     public JSONArray localFilesToSend() {
         JSONArray jsonArray = new JSONArray();
 
-        for (Pair<String,Boolean> p : localFiles) {
-            String name = URLEncoder.encode(p.getFirst(), StandardCharsets.UTF_8);
-            String lock = URLEncoder.encode(String.valueOf(p.getSecond()), StandardCharsets.UTF_8);
+        for (Map.Entry<String, Optional<Boolean>> entry : networkfiles.entrySet()) {
+            String name = URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8);
+            String lock;
+
+            if (entry.getValue().isPresent()) {
+                lock = URLEncoder.encode(String.valueOf(entry.getValue().get()), StandardCharsets.UTF_8);
+            } else {
+                lock = ""; // or any default value you want to use when the Optional is empty
+            }
+
             JSONObject jo = new JSONObject();
             jo.put("name", name);
             jo.put("lock", lock);
@@ -47,6 +59,8 @@ public class SyncAgent implements Runnable, Serializable {
         }
         return jsonArray;
     }
+
+
 
     /**
      * Ask for the information about the next node. Create HTTP request and receive information.

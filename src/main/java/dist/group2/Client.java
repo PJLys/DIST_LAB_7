@@ -11,10 +11,11 @@ import java.util.Optional;
 
 public class Client {
     private final Map<String, Optional<Boolean>> networkFiles = new HashMap<>();
-    private final SyncAgent syncAgent;
 
     public Client() {
-        this.syncAgent = new SyncAgent();
+        SyncAgent syncAgent = new SyncAgent(this.networkFiles);
+        Thread syncThread = new Thread(syncAgent);
+        syncThread.start();
     }
 
     public void readfile(String filename) throws RuntimeException {
@@ -25,8 +26,17 @@ public class Client {
 
         // Request the file
         String ipaddr = NamingClient.findFile(filename);
+        this.request(ipaddr, filename, false);
+    }
+
+    public void editfile(String filename) throws RuntimeException {
+        Optional<Boolean> lock = this.getLock(filename);
+        if (lock.isPresent()) {
+            throw new RuntimeException("File is in use!");
+        }
+
+        String ipaddr = NamingClient.findFile(filename);
         this.request(ipaddr, filename, true);
-        throw new NotYetImplementedException();
     }
 
 
