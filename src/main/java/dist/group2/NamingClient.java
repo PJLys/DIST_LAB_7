@@ -80,6 +80,11 @@ public class NamingClient {
         }
     }
 
+    /**
+     * Use in failure, ask the previous node IP of the specified nodeID
+     * @param nodeID ID from the specific node
+     * @return previous node id (if id = current); current node id (if id = next)
+     */
     public static String getIPAddressPreviousNode(int nodeID) {
         String url = baseUrl + "/nodes/" + nodeID + "/previousNode";
         try {
