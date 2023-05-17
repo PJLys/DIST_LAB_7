@@ -1,7 +1,6 @@
 package dist.group2;
 
 import jakarta.annotation.PreDestroy;
-import org.springframework.boot.SpringApplication;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,6 @@ public class DiscoveryClient {
     private int namingPort;
     private int unicastPort;
     private String baseUrl;
-    private static boolean shuttingDown = false;
 
     public void init(String name, String IPAddress, int unicastPort, int namingPort) {
         this.name = name;
@@ -64,7 +62,7 @@ public class DiscoveryClient {
         }
         catch (IOException e) {
             System.out.println("Failed to send multicast");
-            failure();
+            ClientApplication.failure();
         }
 
         // Listen for a response with the number of nodes & IP address of the naming server
@@ -76,7 +74,7 @@ public class DiscoveryClient {
         }
         catch (IOException e) {
             System.out.println(Arrays.toString(e.getStackTrace()));
-            failure();
+            ClientApplication.failure();
         }
 
         String namingServerIP = rxData.split("\\|")[0];
@@ -95,9 +93,6 @@ public class DiscoveryClient {
     @PreDestroy
     private void shutdown() {
         System.out.println("<---> " + this.name + " Shutdown <--->");
-
-        // Set shuttingDown to true to avoid infinite failure loops
-        shuttingDown = true;
 
         // Set the nextID value of the previous node to nextID of this node
         if (previousID != hashValue(this.name)) {
@@ -133,13 +128,6 @@ public class DiscoveryClient {
 
         // Delete this node from the Naming Server's database
         NamingClient.deleteNode(name);
-    }
-
-    public static void failure() {
-        if (!shuttingDown) {
-            System.out.println("<---> " + DiscoveryClient.name + " Failure <--->");
-            SpringApplication.exit(ClientApplication.context);
-        }
     }
 
     private void compareIDs(String RxData) {
@@ -206,7 +194,7 @@ public class DiscoveryClient {
             }
             default -> {
                 System.out.println("<" + this.name + "> - ERROR - Unicast received 2nd parameter other than 'previousID' or 'nextID'");
-                failure();
+                ClientApplication.failure();
             }
         }
     }
@@ -218,7 +206,7 @@ public class DiscoveryClient {
             System.out.println("<---> Send response to multicast of node " + newNodeIP + " <--->");
         } catch (IOException e) {
             System.out.println("Responding to multicast failed");
-            failure();
+            ClientApplication.failure();
         }
     }
 
@@ -226,7 +214,7 @@ public class DiscoveryClient {
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
-            failure();
+            ClientApplication.failure();
         }
     }
 }
