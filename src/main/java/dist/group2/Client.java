@@ -1,27 +1,34 @@
 package dist.group2;
 
+import dist.group2.agents.SyncAgent;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.springframework.data.util.Pair;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 
 public class Client {
-    private final Map<String,Character> networkFiles = new HashMap<>();
-    public void readfile(String filename) throws RuntimeException{
-        // Check if the file is locked
-        if (this.getLock(filename)=='w') {
-            throw new RuntimeException("File is locked for writing!");
+    private final Map<String, Optional<Boolean>> networkFiles = new HashMap<>();
+    private final SyncAgent syncAgent;
+
+    public Client() {
+        this.syncAgent = new SyncAgent();
+    }
+
+    public void readfile(String filename) throws RuntimeException {
+        Optional<Boolean> lock = this.getLock(filename);
+        if (lock.isPresent() && lock.get()) {
+            throw new RuntimeException("File is currently being written to!");
         }
 
-        // Find file location
-        String ipaddr = NamingClient.findFile(filename);
-
         // Request the file
-        this.request(ipaddr, filename, 'r');
+        String ipaddr = NamingClient.findFile(filename);
+        this.request(ipaddr, filename, true);
         throw new NotYetImplementedException();
     }
+
 
     /**
      * Request a file to the remote node
@@ -29,15 +36,7 @@ public class Client {
      * @param filename name of requested file
      * @param method the action we want to perform on the file
      */
-    private void request(String ipaddr, String filename, char method) {
-        switch (method) {
-            case 'r' -> {
-                // Request read
-            }
-            case 'w' -> {
-                // Request write
-            }
-        }
+    private void request(String ipaddr, String filename, boolean method) {
         throw new NotYetImplementedException();
     }
 
@@ -47,13 +46,8 @@ public class Client {
      * @param filename name of the file that
      * @param method action of the requester
      */
-    private void incomingRequest(String nodename, String filename, char method) {
+    private void incomingRequest(String nodename, String filename, boolean method) {
         this.handleLock(filename, method);
-
-        switch (method) {
-            case 'r' -> {
-            }
-        }
         throw new NotYetImplementedException();
     }
 
@@ -62,8 +56,14 @@ public class Client {
      * @param filename name of the file
      * @param method action that is to be performed on the file
      */
-    private void handleLock(String filename, char method) {
-
+    private void handleLock(String filename, boolean method) {
+        if (method) {
+            // If the caller wants to write (boolean true), set a true flag to the file
+            this.networkFiles.put(filename, Optional.of(true));
+        } else {
+            // If the caller wants to read (boolean false), set a false flag to the file
+            this.networkFiles.put(filename, Optional.of(false));
+        }
     }
 
     /**
@@ -71,7 +71,7 @@ public class Client {
      * @param filename name of file we request the lock from
      * @return either 'r' or 'w' to see how the file is being used
      */
-    private char getLock(String filename) {
+    private Optional<Boolean> getLock(String filename) {
         return this.networkFiles.get(filename);
     }
 }

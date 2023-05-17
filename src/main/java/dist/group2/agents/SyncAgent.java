@@ -1,6 +1,5 @@
 package dist.group2.agents;
 
-import dist.group2.DiscoveryClient;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.hibernate.cfg.NotYetImplementedException;
@@ -10,7 +9,8 @@ import java.io.Serializable;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * This is a sync agent. Its responsibility is to synchronize the files owned by the node with the available
@@ -21,9 +21,6 @@ import java.util.stream.Collectors;
  * @attribute localFiles holds the names of files on the node and if they're accessible
 */
 public class SyncAgent implements Runnable, Serializable {
-
-    private final LinkedList<Pair<String,Boolean>> localFiles = new LinkedList<>();
-
     /**
      * Check for files, and then yield the CPU
      */

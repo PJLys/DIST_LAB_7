@@ -10,9 +10,13 @@
         <module name="NamingServer" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="DIST_LAB_6" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="DIST_LAB_6" options="-parameters" />
       <module name="NamingServer" options="-parameters" />
     </option>
   </component>
