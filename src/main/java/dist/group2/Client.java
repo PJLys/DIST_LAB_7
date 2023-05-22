@@ -4,6 +4,8 @@ import dist.group2.agents.SyncAgent;
 import net.minidev.json.JSONObject;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.springframework.data.util.Pair;
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -52,9 +54,42 @@ public class Client {
      * @param method the action we want to perform on the file
      */
     private void request(String ipaddr, String filename, boolean method) {
+        // Create the request body
         JSONObject body = new JSONObject();
         body.put("node", NamingClient.getName());
 
+        // Set the request headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Create the HTTP entity with body and headers
+        HttpEntity<String> requestEntity = new HttpEntity<>(body.toString(), headers);
+
+        // Create a RestTemplate instance
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Determine the request URL based on the IP address and filename
+        String requestUrl = "http://" + ipaddr + "/" + filename + "/" + (method ? "w" : "r");
+
+        try {
+            // Send the HTTP request
+            ResponseEntity<byte[]> response = restTemplate.exchange(
+                    requestUrl,
+                    HttpMethod.GET,
+                    requestEntity,
+                    byte[].class
+            );
+
+            // Retrieve the response body
+            byte[] responseBody = response.getBody();
+
+            // Perform any desired operations with the response body
+            // ...
+
+        } catch (Exception e) {
+            // Handle any exceptions that may occur during the request
+            e.printStackTrace();
+        }
     }
 
     /**
