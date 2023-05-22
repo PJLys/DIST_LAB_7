@@ -1,5 +1,6 @@
 package dist.group2;
 
+import jakarta.annotation.PreDestroy;
 import dist.group2.agents.AgentController;
 import dist.group2.agents.SyncAgent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ public class ClientApplication {
     private DiscoveryClient discoveryClient;
     private SyncAgent syncAgent;
     private static AgentController agentController;
+    Thread replicationthread;
 
     @Autowired
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
@@ -43,18 +45,17 @@ public class ClientApplication {
         NamingClient.setName(name);
         replicationClient.replicateFiles();
 
-        System.out.println(1);
         replicationClient.addFiles();
-        System.out.println(2);
         replicationClient.setFileDirectoryWatchDog();
-        System.out.println(3);
         replicationClient.replicateFiles();
-        System.out.println(4);
 
-        Thread replicationthread = new Thread(replicationClient);
-        System.out.println(5);
+        replicationthread = new Thread(replicationClient);
         replicationthread.start();
-        System.out.println(6);
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        replicationthread.stop();
 
     }
 

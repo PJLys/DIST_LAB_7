@@ -32,7 +32,8 @@ public class ReplicationClient implements Runnable{
     private final int fileUnicastPort;
     private String nodeName = InetAddress.getLocalHost().getHostName();
     private int nodeID = DiscoveryClient.hashValue(nodeName);
-    private String IPAddress = InetAddress.getLocalHost().getHostAddress();UnicastReceivingChannelAdapter fileAdapter;
+    private String IPAddress = InetAddress.getLocalHost().getHostAddress();
+    UnicastReceivingChannelAdapter fileAdapter;
 
     WatchService file_daemon = FileSystems.getDefault().newWatchService();
     private static final Path local_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\local_files"));  //Stores the local files that need to be replicated
@@ -246,7 +247,11 @@ public class ReplicationClient implements Runnable{
         transmitFileAsJSON(jo, nodeIP);
     }
 
-    public void transmitFileAsJSON(JSONObject json, String nodeIP) throws IOException {
+    public void transmitFileAsJSON(JSONObject json, String nodeIP) {
+        // If the file is send to itself, use the loopback address.
+        if (nodeIP == IPAddress) {
+            nodeIP = "172.0.0.1";
+        }
         // Write the JSON data into a buffer
         byte[] data = json.toString().getBytes(StandardCharsets.UTF_8);
 
@@ -265,12 +270,12 @@ public class ReplicationClient implements Runnable{
         //Map<String, Object> requestBody = new HashMap<>();
         //requestBody.put("fileMessage", data);
         try {
-
             restTemplate.postForObject(url, data, Void.class);
         } catch (Exception e) {
+            System.out.println("ERROR - posting file throws IOException");
             System.out.println("\tRaw data received: " + e.getStackTrace());
-            System.out.println("\n\tException: \n\t"+e.getMessage());
         }
+        // if (nodeIP !=)
         restTemplate.postForObject(url, data, Void.class);
 
         System.out.println("Sent replicated version of file " + json.get("name") + " to node " + nodeIP);
@@ -282,86 +287,96 @@ public class ReplicationClient implements Runnable{
      * Update a file when it has been remotely edited.
      * @param message: Message received from the Communicator
      */
-    @ServiceActivator(inputChannel = "FileUnicast")
-    public int fileUnicastEvent(Message<byte[]> message) throws IOException {
-        byte[] raw_data = message.getPayload();
-        JSONObject jo;
-        try {
-            JSONParser parser = new JSONParser();
-            jo = (JSONObject) parser.parse(raw_data);
-        } catch (ParseException e) {
-            System.out.println("Received message but failed to parse data!");
-            System.out.println("\tRaw data received: " + Arrays.toString(raw_data));
-            System.out.println("\n\tException: \n\t"+e.getMessage());
-            return -1;
-        }
+    //@ServiceActivator(inputChannel = "FileUnicast")
+    //public int fileUnicastEvent(Message<byte[]> message) throws IOException {
+    //    byte[] raw_data = message.getPayload();
+    //    JSONObject jo;
+    //    try {
+    //        JSONParser parser = new JSONParser();
+    //        jo = (JSONObject) parser.parse(raw_data);
+    //    } catch (ParseException e) {
+    //        System.out.println("Received message but failed to parse data!");
+    //        System.out.println("\tRaw data received: " + Arrays.toString(raw_data));
+    //        System.out.println("\n\tException: \n\t"+e.getMessage());
+    //        return -1;
+    //    }
+//
+    //    String file_name = (String) jo.get("name");
+    //    String extra_message = (String) jo.get("extra_message");
+    //    String data = (String) jo.get("data");
+    //    String log_data = (String) jo.get("log_data");
+//
+    //    String file_path = replicated_file_path.toString() + '/' + file_name;
+    //    String log_file_path = log_path.toString() + '/' + file_name + ".log";
+//
+    //    // Get current timestamp
+    //    String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(System.currentTimeMillis()));
+//
+    //    System.out.println("Received unicast of type: " + extra_message);
+    //    if (Objects.equals(extra_message, "ENTRY_SHUTDOWN_REPLICATE")) {
+    //        boolean fileFoundLocally = fileStoredLocally(file_name);
+//
+    //        if (fileFoundLocally) {
+    //            // Find the IP address of the previous node
+    //            int previousNodeID = DiscoveryClient.getPreviousID();
+    //            String previousNodeIP = NamingClient.getIPAddress(previousNodeID);
+//
+    //            // Retransfer the file and its log to the previous node
+    //            transmitFileAsJSON(jo, previousNodeIP);
+    //            return 0;
+    //        } else {
+    //            // Store the replicated file
+    //            FileOutputStream os_file = new FileOutputStream(file_path);
+    //            os_file.write(data.getBytes());
+    //            os_file.close();
+//
+    //            // Store the log of the replicated file
+    //            os_file = new FileOutputStream(log_file_path);
+    //            String update_text = date + " - Change of owner caused by shutdown.\n";
+    //            os_file.write((log_data + update_text).getBytes());
+    //            os_file.close();
+    //        }
+    //    } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
+    //        // Store the replicated file
+    //        FileOutputStream os_file = new FileOutputStream(file_path);
+    //        os_file.write(data.getBytes());
+    //        os_file.close();
+//
+    //        // Create a log for the file
+    //        os_file = new FileOutputStream(log_file_path);
+    //        String new_text = date + " - File is added & receives first owner.\n";
+    //        os_file.write(new_text.getBytes());
+    //        os_file.close();
+    //    } else if (Objects.equals(extra_message, "ENTRY_MODIFY")) {
+    //        // Store the replicated file
+    //        FileOutputStream os_file = new FileOutputStream(file_path);
+    //        os_file.write(data.getBytes());
+    //        os_file.close();
+//
+    //        // Update the log
+    //        os_file = new FileOutputStream(log_file_path, true);
+    //        String update_text = date + " - Modification happened.\n";
+    //        os_file.write(update_text.getBytes());
+    //        os_file.close();
+    //    } else if (Objects.equals(extra_message, "ENTRY_DELETE")) {
+    //        Files.deleteIfExists(Path.of(file_path));
+    //        Files.deleteIfExists(Path.of(log_file_path));
+    //    } else if (Objects.equals(extra_message, "OVERFLOW")) {
+    //        System.out.println("ERROR - Overflow received when watching for events in the local_files directory!");
+    //        DiscoveryClient.failure();
+    //    }
+    //    return 0;
+    //}
 
-        String file_name = (String) jo.get("name");
-        String extra_message = (String) jo.get("extra_message");
-        String data = (String) jo.get("data");
-        String log_data = (String) jo.get("log_data");
 
-        String file_path = replicated_file_path.toString() + '/' + file_name;
-        String log_file_path = log_path.toString() + '/' + file_name + ".log";
 
-        // Get current timestamp
-        String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(System.currentTimeMillis()));
 
-        System.out.println("Received unicast of type: " + extra_message);
-        if (Objects.equals(extra_message, "ENTRY_SHUTDOWN_REPLICATE")) {
-            boolean fileFoundLocally = fileStoredLocally(file_name);
 
-            if (fileFoundLocally) {
-                // Find the IP address of the previous node
-                int previousNodeID = DiscoveryClient.getPreviousID();
-                String previousNodeIP = NamingClient.getIPAddress(previousNodeID);
 
-                // Retransfer the file and its log to the previous node
-                transmitFileAsJSON(jo, previousNodeIP);
-                return 0;
-            } else {
-                // Store the replicated file
-                FileOutputStream os_file = new FileOutputStream(file_path);
-                os_file.write(data.getBytes());
-                os_file.close();
 
-                // Store the log of the replicated file
-                os_file = new FileOutputStream(log_file_path);
-                String update_text = date + " - Change of owner caused by shutdown.\n";
-                os_file.write((log_data + update_text).getBytes());
-                os_file.close();
-            }
-        } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
-            // Store the replicated file
-            FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(data.getBytes());
-            os_file.close();
 
-            // Create a log for the file
-            os_file = new FileOutputStream(log_file_path);
-            String new_text = date + " - File is added & receives first owner.\n";
-            os_file.write(new_text.getBytes());
-            os_file.close();
-        } else if (Objects.equals(extra_message, "ENTRY_MODIFY")) {
-            // Store the replicated file
-            FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(data.getBytes());
-            os_file.close();
 
-            // Update the log
-            os_file = new FileOutputStream(log_file_path, true);
-            String update_text = date + " - Modification happened.\n";
-            os_file.write(update_text.getBytes());
-            os_file.close();
-        } else if (Objects.equals(extra_message, "ENTRY_DELETE")) {
-            Files.deleteIfExists(Path.of(file_path));
-            Files.deleteIfExists(Path.of(log_file_path));
-        } else if (Objects.equals(extra_message, "OVERFLOW")) {
-            System.out.println("ERROR - Overflow received when watching for events in the local_files directory!");
-            ClientApplication.failure();
-        }
-        return 0;
-    }
+
         //if (Objects.equals(extra_message, "warning")) {
         //    System.out.println("I am the owner of " + fileName + " and got a warning.");
         //    if (wasDownloaded(file_path)) {
@@ -493,7 +508,7 @@ public class ReplicationClient implements Runnable{
             System.out.println("Received message but failed to parse data!");
             System.out.println("\tRaw data received: " + Arrays.toString(raw_data));
             System.out.println("\n\tException: \n\t"+e.getMessage());
-            DiscoveryClient.failure();
+            ClientApplication.failure();
         }
 
         String file_name = (String) jo.get("name");
@@ -557,7 +572,7 @@ public class ReplicationClient implements Runnable{
             Files.deleteIfExists(Path.of(log_file_path));
         } else if (Objects.equals(extra_message, "OVERFLOW")) {
             System.out.println("ERROR - Overflow received when watching for events in the local_files directory!");
-            DiscoveryClient.failure();
+            ClientApplication.failure();
         }
     }
 }
