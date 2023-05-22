@@ -10,12 +10,11 @@ import java.util.Map;
 import java.util.Optional;
 
 public class Client {
-    private final Map<String, Optional<Boolean>> networkFiles = new HashMap<>();
-
+    private final SyncAgent syncAgent;
     public Client() {
-        SyncAgent syncAgent = new SyncAgent(this.networkFiles);
+        SyncAgent syncAgent = SyncAgent.getAgent();
         Thread syncThread = new Thread(syncAgent);
-
+        this.syncAgent = syncAgent;
         syncThread.start();
     }
 
@@ -67,13 +66,14 @@ public class Client {
      * @param filename name of the file
      * @param method action that is to be performed on the file
      */
-    private void handleLock(String filename, boolean method) {
+    public void handleLock(String filename, boolean method) {
+        throw new NotYetImplementedException("Need to set the lock of owned files!");
         if (method) {
             // If the caller wants to write (boolean true), set a true flag to the file
-            this.networkFiles.put(filename, Optional.of(true));
+            this.log.put(filename, Optional.of(true));
         } else {
             // If the caller wants to read (boolean false), set a false flag to the file
-            this.networkFiles.put(filename, Optional.of(false));
+            this.log.put(filename, Optional.of(false));
         }
     }
 
@@ -83,6 +83,6 @@ public class Client {
      * @return either 'r' or 'w' to see how the file is being used
      */
     private Optional<Boolean> getLock(String filename) {
-        return this.networkFiles.get(filename);
+        return this.syncAgent.getLock(filename);
     }
 }

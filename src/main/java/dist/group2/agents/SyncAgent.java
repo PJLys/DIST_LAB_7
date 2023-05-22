@@ -28,8 +28,15 @@ public class SyncAgent implements Runnable, Serializable {
     //                              - If present:  - true ==> No R/W
     //                                             - false ==> only R
     private final Map<String, Optional<Boolean>> networkfiles;
-    public SyncAgent() {
+    private static SyncAgent instance;
+    private SyncAgent() {
         this.networkfiles = new HashMap<>();
+    }
+
+    public static SyncAgent getAgent() {
+        if (instance==null)
+            instance = new SyncAgent();
+        return instance;
     }
 
     /**
@@ -67,7 +74,6 @@ public class SyncAgent implements Runnable, Serializable {
     }
 
 
-
     /**
      * Ask for the information about the next node. Create HTTP request and receive information.
      */
@@ -96,6 +102,23 @@ public class SyncAgent implements Runnable, Serializable {
             }
             networkfiles.put(name, lock);
         }
+    }
+
+    /**
+     * Return the status of the file to the client
+     * @param filename name of requested file
+     * @return empty if usable for R/W; false if usable for R; true if unusable
+     */
+    public Optional<Boolean> getLock(String filename){
+        try {
+            return this.networkfiles.get(filename);
+        } catch (NullPointerException e){
+            System.out.println("The Requested file: "+filename+ " is not present in the repository!\n" +
+                    "Replying with 'true' since this results in the file not being usable\n\n");
+            System.out.println(e.getMessage()+"\n\n");
+            System.out.println(Arrays.toString(e.getStackTrace()));
+        }
+        return Optional.of(true);
     }
 }
 
