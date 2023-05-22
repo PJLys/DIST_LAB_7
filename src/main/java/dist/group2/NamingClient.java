@@ -54,6 +54,7 @@ public class NamingClient {
             System.out.println("<" + name + "> - " + fileName + " is stored at IPAddress " + IPAddress);
             return IPAddress;
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new RuntimeException("There are no nodes in the database");
         }
     }

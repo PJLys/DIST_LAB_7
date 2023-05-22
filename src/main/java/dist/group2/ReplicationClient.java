@@ -1,6 +1,7 @@
 package dist.group2;
 
 import jakarta.annotation.PreDestroy;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -8,6 +9,7 @@ import org.hibernate.cfg.NotYetImplementedException;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.messaging.Message;
+import org.springframework.util.SerializationUtils;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -143,18 +145,16 @@ public class ReplicationClient implements Runnable {
     public List<String> replicateFiles() throws IOException {
         System.out.println("replicate files");
         List<String> localFiles = new ArrayList<>();
-        File[] files = new File(local_file_path.toString()).listFiles();//If this pathname does not denote a directory, then listFiles() returns null.
-        // Enkel file2 wordt afgegaan in de loop
-        // Maak boven geen new File, creer file in for loop
-        System.out.println(files);
-        System.out.println(new File(local_file_path.toString()).listFiles());
-        assert files != null;
+        File folder = new File(local_file_path.toString());
+        File[] files = folder.listFiles();
+
         for (File file : files) {
             System.out.println("Replicating file: " + file.toString());
             if (file.isFile()) {
                 String fileName = file.getName();
                 String filePath = local_file_path.toString() + '/' + fileName;
                 String replicator_loc = NamingClient.findFile(Path.of(filePath).getFileName().toString());
+                System.out.println(replicator_loc);
                 sendFileToNode( filePath, null, replicator_loc, "ENTRY_CREATE");
             }
         }
@@ -228,16 +228,15 @@ public class ReplicationClient implements Runnable {
         // Put the payload data in the JSON object
         jo.put("name", fileName);
         jo.put("extra_message", extra_message);
-        jo.put("data", Files.readAllBytes(fileLocation));
+        jo.put("data", Arrays.toString(Files.readAllBytes(fileLocation)));
 
         // Also include the data of the log file when necessary
         if (logPath == null) {
-            jo.put("log_data", null);
+            jo.put("log_data", "null");
         } else {
-            jo.put("log_data", Files.readAllBytes(Path.of(logPath)));
+            jo.put("log_data", Arrays.toString(Files.readAllBytes(Path.of(logPath))));
         }
 
-        // Write the JSON data into a buffer
         byte[] data = jo.toString().getBytes(StandardCharsets.UTF_8);
 
         // Create TCP socket and output stream
