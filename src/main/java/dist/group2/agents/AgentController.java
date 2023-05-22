@@ -65,13 +65,6 @@ public class AgentController {
         restTemplate.postForObject(nextNodeUrl + "/executeFailureAgent", failureAgent, Void.class);
     }
 
-    @GetMapping("/files/existence")
-    public boolean checkExistence(@RequestParam String fileName) {
-        File localFile = new File(ReplicationClient.getLocalFilePath().toString() + "/" + fileName);
-        File replicatedFile = new File(ReplicationClient.getReplicatedFilePath().toString() + "/" + fileName);
-        return (localFile.exists() | replicatedFile.exists());
-    }
-
     @GetMapping("/sync")
     public JSONArray listFiles() {
         return this.syncAgent.localFilesToSend();

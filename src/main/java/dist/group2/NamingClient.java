@@ -19,6 +19,10 @@ public class NamingClient {
         NamingClient.name = name;
     }
 
+    public static String getName(){
+        return NamingClient.name;
+    }
+
     public static void setBaseUrl(String baseUrl) {
         NamingClient.baseUrl = baseUrl;
     }

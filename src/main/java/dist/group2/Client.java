@@ -1,15 +1,20 @@
 package dist.group2;
 
 import dist.group2.agents.SyncAgent;
+import net.minidev.json.JSONObject;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.springframework.data.util.Pair;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Optional;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class Client {
+    private static final Path owned_files = Path.of(new File("").getAbsolutePath().concat("\\src\\replicated_files"));
     private final SyncAgent syncAgent;
     public Client() {
         SyncAgent syncAgent = SyncAgent.getAgent();
@@ -47,7 +52,9 @@ public class Client {
      * @param method the action we want to perform on the file
      */
     private void request(String ipaddr, String filename, boolean method) {
-        throw new NotYetImplementedException();
+        JSONObject body = new JSONObject();
+        body.put("node", NamingClient.getName());
+
     }
 
     /**
@@ -56,9 +63,20 @@ public class Client {
      * @param filename name of the file that
      * @param method action of the requester
      */
-    private void incomingRequest(String nodename, String filename, boolean method) {
-        this.syncAgent.handleLock(filename, method);
-        throw new NotYetImplementedException();
+    protected byte[] incomingRequest(String nodename, String filename, boolean method) {
+        Path path_to_file = Paths.get(String.valueOf(owned_files), filename);
+        if (!Files.exists(path_to_file)) {
+            System.out.println("File " + filename + " not found in owned files!");
+            return new byte[0];
+        }
+        try {
+            return Files.readAllBytes(path_to_file);
+        } catch (IOException e) {
+            System.out.println("Failed to access file!\n\n");
+            System.out.println(e.getMessage()+"\n\n");
+            System.out.println(Arrays.toString(e.getStackTrace()));
+        }
+        return new byte[0];
     }
 
 

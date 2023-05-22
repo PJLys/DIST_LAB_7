@@ -509,6 +509,7 @@ public class ReplicationClient implements Runnable{
             System.out.println("\tRaw data received: " + Arrays.toString(raw_data));
             System.out.println("\n\tException: \n\t"+e.getMessage());
             ClientApplication.failure();
+            return;
         }
 
         String file_name = (String) jo.get("name");
