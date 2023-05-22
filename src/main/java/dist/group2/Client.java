@@ -57,30 +57,15 @@ public class Client {
      * @param method action of the requester
      */
     private void incomingRequest(String nodename, String filename, boolean method) {
-        this.handleLock(filename, method);
+        this.syncAgent.handleLock(filename, method);
         throw new NotYetImplementedException();
     }
 
-    /**
-     * Update local loc information based on the log of the filename
-     * @param filename name of the file
-     * @param method action that is to be performed on the file
-     */
-    public void handleLock(String filename, boolean method) {
-        throw new NotYetImplementedException("Need to set the lock of owned files!");
-        if (method) {
-            // If the caller wants to write (boolean true), set a true flag to the file
-            this.log.put(filename, Optional.of(true));
-        } else {
-            // If the caller wants to read (boolean false), set a false flag to the file
-            this.log.put(filename, Optional.of(false));
-        }
-    }
 
     /**
      * Check the local list for the lock of the file
      * @param filename name of file we request the lock from
-     * @return either 'r' or 'w' to see how the file is being used
+     * @return Optional containing either a read (false) or write (true) lock
      */
     private Optional<Boolean> getLock(String filename) {
         return this.syncAgent.getLock(filename);

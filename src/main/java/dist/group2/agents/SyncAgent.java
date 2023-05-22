@@ -4,6 +4,7 @@ import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
+import org.hibernate.cfg.NotYetImplementedException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -119,6 +120,21 @@ public class SyncAgent implements Runnable, Serializable {
             System.out.println(Arrays.toString(e.getStackTrace()));
         }
         return Optional.of(true);
+    }
+
+    /**
+     * Update local loc information based on the log of the filename
+     * @param filename name of the file
+     * @param method action that is to be performed on the file
+     */
+    public void handleLock(String filename, boolean method) {
+        if (method) {
+            // If the caller wants to write (boolean true), set a true flag to the file
+            this.networkfiles.put(filename, Optional.of(true));
+        } else {
+            // If the caller wants to read (boolean false), set a false flag to the file
+            this.networkfiles.put(filename, Optional.of(false));
+        }
     }
 }
 
