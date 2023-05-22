@@ -4,19 +4,15 @@ import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
-import org.hibernate.cfg.NotYetImplementedException;
-import org.springframework.data.util.Pair;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.Serializable;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * This is a sync agent. Its responsibility is to synchronize the files owned by the node with the available
@@ -26,10 +22,14 @@ import java.util.Optional;
  *
  * @attribute localFiles holds the names of files on the node and if they're accessible
 */
+@Component
 public class SyncAgent implements Runnable, Serializable {
-    private Map<String, Optional<Boolean>> networkfiles;
-    public SyncAgent(Map<String,Optional<Boolean>> networkfiles) {
-        this.networkfiles = networkfiles;
+    //Stores a filename with a lock:- If empty ==> No lock
+    //                              - If present:  - true ==> No R/W
+    //                                             - false ==> only R
+    private final Map<String, Optional<Boolean>> networkfiles;
+    public SyncAgent() {
+        this.networkfiles = new HashMap<>();
     }
 
     /**
@@ -37,7 +37,7 @@ public class SyncAgent implements Runnable, Serializable {
      */
     @Override
     public void run() {
-        this.checkfiles();
+        this.updateNetworkFileStatus();
         Thread.yield();
     }
 
@@ -71,7 +71,7 @@ public class SyncAgent implements Runnable, Serializable {
     /**
      * Ask for the information about the next node. Create HTTP request and receive information.
      */
-    private void checkfiles() {
+    private void updateNetworkFileStatus() {
         // CREATE REQUEST
         String nextIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         RestTemplate template = new RestTemplate();
@@ -82,11 +82,10 @@ public class SyncAgent implements Runnable, Serializable {
         if (jsarr==null) {
             return;
         }
-
+        //Update local network list
         for (Object obj : jsarr) {
-            if (!(obj instanceof JSONObject))
+            if (!(obj instanceof JSONObject jsobj))
                 continue;
-            JSONObject jsobj = (JSONObject) obj;
             String name = (String) jsobj.get("name");
             String lockValue = (String) jsobj.get("lock");
             Optional<Boolean> lock;
@@ -97,13 +96,6 @@ public class SyncAgent implements Runnable, Serializable {
             }
             networkfiles.put(name, lock);
         }
-
-        throw new NotYetImplementedException("Create HTTP requests!");
-    }
-
-    private void updateNode() {
-        // Update the local node list
-        throw new NotYetImplementedException("Create update function");
     }
 }
 

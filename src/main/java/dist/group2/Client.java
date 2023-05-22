@@ -15,6 +15,7 @@ public class Client {
     public Client() {
         SyncAgent syncAgent = new SyncAgent(this.networkFiles);
         Thread syncThread = new Thread(syncAgent);
+
         syncThread.start();
     }
 

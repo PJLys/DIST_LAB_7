@@ -4,6 +4,7 @@ import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
 import dist.group2.ReplicationClient;
 import net.minidev.json.JSONArray;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,7 +14,12 @@ import java.io.File;
 public class AgentController {
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private final SyncAgent syncAgent = new SyncAgent();
+    private final SyncAgent syncAgent;
+
+    @Autowired
+    public AgentController(SyncAgent syncAgent) {
+        this.syncAgent = syncAgent;
+    }
 
     @PostMapping("/executeFailureAgent")
     public void executeFailureAgent(@RequestBody FailureAgent failureAgent) {
