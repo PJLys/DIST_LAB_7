@@ -30,7 +30,6 @@ import java.util.*;
 @Service
 public class ReplicationClient implements Runnable{
     private static boolean failed = false;
-    private final int fileUnicastPort;
     private final String nodeName = InetAddress.getLocalHost().getHostName();
     private final int nodeID = DiscoveryClient.hashValue(nodeName);
     private final String IPAddress = InetAddress.getLocalHost().getHostAddress();
@@ -320,21 +319,6 @@ public class ReplicationClient implements Runnable{
         return false;
     }
 
-    // POST file using REST
-    public void replicateFile(JSONObject file) throws IOException {
-        System.out.println("Received file using REST: " + file.toString());
-        JSONObject json = file;
-        //JSONObject raw_data = fileMessage.getPayload();
-        try {
-            JSONParser parser = new JSONParser();
-            jo = (JSONObject) parser.parse(String.valueOf(raw_data));
-        } catch (ParseException e) {
-            System.out.println("Received message but failed to parse data!");
-            System.out.println("\tRaw data received: " + raw_data);
-            System.out.println("\n\tException: \n\t"+e.getMessage());
-            ClientApplication.failure();
-            return;
-        }
     public void replicateFile(JSONObject json) throws IOException {
         System.out.println("Received file " + json.get("name") + " using REST with action " + json.get("extra_message"));
         implementUpdate(json);
@@ -365,11 +349,11 @@ public class ReplicationClient implements Runnable{
                 os_file.write((log_data).getBytes());
                 os_file.close();
                 // Edit log
-                Logger.setOwner(log_file_path, String.valueOf(this.nodeID));
+                Logger.setOwner(log_file_path, this.nodeID);
                 Logger.removeReplicator();
-                Logger.addReplicator(log_file_path, String.valueOf(previousNodeID));
+                Logger.addReplicator(log_file_path, previousNodeID);
                 // Remove log data, as the current node is the owner
-                jo.remove("log_data");
+                json.remove("log_data");
                 updateFile(json, previousNodeIP);
             } else {
                 // Store the replicated file
@@ -377,11 +361,6 @@ public class ReplicationClient implements Runnable{
                 os_file.write(data.getBytes());
                 os_file.close();
 
-                // Store the log of the replicated file. It is already updated by the previous owner
-                // ...
-//                os_file = new FileOutputStream(log_file_path);
-//                os_file.write((log_data).getBytes());
-//                os_file.close();
             }
         } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
             // Store the replicated file
