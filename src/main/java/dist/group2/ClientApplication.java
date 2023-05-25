@@ -46,6 +46,7 @@ public class ClientApplication {
         NamingClient.setName(name);
         replicationClient.replicateFiles();
 
+        replicationClient.createDirectories();
         replicationClient.addFiles();
         replicationClient.setFileDirectoryWatchDog();
         replicationClient.replicateFiles();
