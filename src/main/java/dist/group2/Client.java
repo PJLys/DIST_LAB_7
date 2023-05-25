@@ -2,19 +2,18 @@ package dist.group2;
 
 import dist.group2.agents.SyncAgent;
 import net.minidev.json.JSONObject;
-import org.hibernate.cfg.NotYetImplementedException;
-import org.springframework.data.util.Pair;
 import org.springframework.http.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+@Service
 public class Client {
     private static final Path owned_files = Path.of(new File("").getAbsolutePath().concat("\\src\\replicated_files"));
     private final SyncAgent syncAgent;
