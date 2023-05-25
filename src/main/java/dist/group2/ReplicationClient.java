@@ -4,6 +4,11 @@ import jakarta.annotation.PreDestroy;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
+import org.hibernate.cfg.NotYetImplementedException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
@@ -257,16 +262,27 @@ public class ReplicationClient implements Runnable{
         //os.flush();
 //
         //tcp_socket.close();
-        String url = "http://" + nodeIP + "/api/node";
+        String url = "http://" + nodeIP + ":" + 8082 + "/api/node";
         RestTemplate restTemplate = new RestTemplate();
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("file", json);
+        requestBody.put("name", json.get("name"));
+        requestBody.put("extra_message", json.get("extra_message"));
+        requestBody.put("data", json.get("data"));
+        requestBody.put("log_data", json.get("log_data"));
+
+        // Specify media type
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        System.out.println(requestEntity);
         try {
-            restTemplate.postForObject(url, requestBody, Void.class);
+            restTemplate.postForObject(url, requestEntity, Void.class);
         } catch (Exception e) {
             System.out.println("ERROR - posting file throws IOException");
-            System.out.println("\tRaw data received: " + e.getStackTrace());
+            System.out.println("\tRaw data received: " + Arrays.toString(e.getStackTrace()));
         }
 
         restTemplate.postForObject(url, data, Void.class);
@@ -477,6 +493,7 @@ public class ReplicationClient implements Runnable{
         }
 
         // Loop through the files and search for the received file name
+        assert localFiles != null;
         for (File file : localFiles) {
             // Get info of the file
             String localFileName = file.getName();
@@ -490,10 +507,10 @@ public class ReplicationClient implements Runnable{
     }
 
     // POST file using REST
-    public void replicateFile(@RequestBody Message<JSONObject> fileMessage) throws IOException {
-        System.out.println("Received file using REST");
-        JSONObject raw_data = fileMessage.getPayload();
-        JSONObject jo = null;
+    public void replicateFile(JSONObject file) throws IOException {
+        System.out.println("Received file using REST: " + file.toString());
+        JSONObject json = file;
+        //JSONObject raw_data = fileMessage.getPayload();
         try {
             JSONParser parser = new JSONParser();
             jo = (JSONObject) parser.parse(String.valueOf(raw_data));
@@ -505,11 +522,13 @@ public class ReplicationClient implements Runnable{
             return;
         }
 
-        String file_name = (String) jo.get("name");
-        String extra_message = (String) jo.get("extra_message");
-        String data = (String) jo.get("data");
-        String log_data = (String) jo.get("log_data");
+        String file_name = (String) json.get("name");
+        String extra_message = (String) json.get("extra_message");
+        String data = (String) json.get("data");
 
+        System.out.println(file_name);
+        System.out.println(extra_message);
+        System.out.println(data);
         String file_path = replicated_file_path.toString() + '/' + file_name;
         String log_file_path = log_path.toString() + '/' + file_name + ".log";
 
@@ -526,7 +545,7 @@ public class ReplicationClient implements Runnable{
                 String previousNodeIP = NamingClient.getIPAddress(previousNodeID);
 
                 // Retransfer the file and its log to the previous node
-                transmitFileAsJSON(jo, previousNodeIP);
+                transmitFileAsJSON(json, previousNodeIP);
             } else {
                 // Store the replicated file
                 FileOutputStream os_file = new FileOutputStream(file_path);
@@ -536,6 +555,7 @@ public class ReplicationClient implements Runnable{
                 // Store the log of the replicated file
                 os_file = new FileOutputStream(log_file_path);
                 String update_text = date + " - Change of owner caused by shutdown.\n";
+                String log_data = (String) json.get("log_data");
                 os_file.write((log_data + update_text).getBytes());
                 os_file.close();
             }
