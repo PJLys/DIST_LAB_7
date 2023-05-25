@@ -1,6 +1,8 @@
 package dist.group2;
 
 import jakarta.annotation.PreDestroy;
+import jakarta.servlet.http.HttpServletRequest;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -544,7 +546,16 @@ public class ReplicationClient implements Runnable{
                 int previousNodeID = DiscoveryClient.getPreviousID();
                 String previousNodeIP = NamingClient.getIPAddress(previousNodeID);
 
-                // Retransfer the file and its log to the previous node
+                // Retransfer the file and its log to the previous node. The current node is the owner, so it should save the log file.
+                FileOutputStream os_file = new FileOutputStream(log_file_path);
+                os_file.write((log_data).getBytes());
+                os_file.close();
+                // Edit log
+                Logger.setOwner(log_file_path, String.valueOf(this.nodeID));
+                Logger.removeReplicator();
+                Logger.addReplicator(log_file_path, String.valueOf(previousNodeID));
+                // Remove log data, as the current node is the owner
+                jo.remove("log_data");
                 transmitFileAsJSON(json, previousNodeIP);
             } else {
                 // Store the replicated file
@@ -552,12 +563,11 @@ public class ReplicationClient implements Runnable{
                 os_file.write(data.getBytes());
                 os_file.close();
 
-                // Store the log of the replicated file
-                os_file = new FileOutputStream(log_file_path);
-                String update_text = date + " - Change of owner caused by shutdown.\n";
-                String log_data = (String) json.get("log_data");
-                os_file.write((log_data + update_text).getBytes());
-                os_file.close();
+                // Store the log of the replicated file. It is already updated by the previous owner
+                // ...
+//                os_file = new FileOutputStream(log_file_path);
+//                os_file.write((log_data).getBytes());
+//                os_file.close();
             }
         } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
             // Store the replicated file
@@ -566,20 +576,14 @@ public class ReplicationClient implements Runnable{
             os_file.close();
 
             // Create a log for the file
-            os_file = new FileOutputStream(log_file_path);
+            List<String> replicators = new ArrayList<>();
+            replicators.add(request.getRemoteAddr());
+            Logger.createLogFile(log_file_path, String.valueOf(this.nodeID), replicators);
             String new_text = date + " - File is added & receives first owner.\n";
-            os_file.write(new_text.getBytes());
-            os_file.close();
         } else if (Objects.equals(extra_message, "ENTRY_MODIFY")) {
             // Store the replicated file
             FileOutputStream os_file = new FileOutputStream(file_path);
             os_file.write(data.getBytes());
-            os_file.close();
-
-            // Update the log
-            os_file = new FileOutputStream(log_file_path, true);
-            String update_text = date + " - Modification happened.\n";
-            os_file.write(update_text.getBytes());
             os_file.close();
         } else if (Objects.equals(extra_message, "ENTRY_DELETE")) {
             Files.deleteIfExists(Path.of(file_path));

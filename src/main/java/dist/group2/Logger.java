@@ -12,22 +12,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Logger {
-    public static String getOwner(String filePath) {
+    public static int getOwner(String filePath) {
         JSONObject jsonObject = readLogFile(filePath);
-        return (String) jsonObject.get("owner");
+        return (int) jsonObject.get("owner");
     }
 
-    public static List<String> getReplicators(String filePath) {
+    public static List<Integer> getReplicators(String filePath) {
         JSONObject jsonObject = readLogFile(filePath);
         JSONArray replicatorsArray = (JSONArray) jsonObject.get("replicators");
-        List<String> replicatorsList = new ArrayList<>();
+        List<Integer> replicatorsList = new ArrayList<>();
         for (Object replicator: replicatorsArray) {
-            replicatorsList.add((String) replicator);
+            replicatorsList.add((int) replicator);
         }
         return replicatorsList;
     }
 
-    public static void createLogFile(String filePath, String owner, List<String> replicators) {
+    public static void createLogFile(String filePath, int owner, List<Integer> replicators) {
         JSONObject logData = new JSONObject();
         JSONArray replicatorsArray = new JSONArray();
         replicatorsArray.addAll(replicators);
@@ -59,7 +59,7 @@ public class Logger {
         return new JSONObject();
     }
 
-    public static void addReplicator(String filePath, String replicator) {
+    public static void addReplicator(String filePath, int replicator) {
         JSONObject jsonObject = readLogFile(filePath);
         JSONArray replicators = (JSONArray) jsonObject.get("replicators");
         if (replicators == null) {
@@ -70,11 +70,11 @@ public class Logger {
         writeJSONObject(filePath, jsonObject);
     }
 
-    public static void removeReplicator(String filePath, String replicator) {
+    public static void removeReplicator(String filePath, int replicator) {
         JSONObject jsonObject = readLogFile(filePath);
         JSONArray replicators = (JSONArray) jsonObject.get("replicators");
         replicators.add(replicator);
-        boolean success = replicators.remove(replicator);
+        boolean success = (boolean) replicators.remove(replicator);
         if (success) {
             System.out.println("Successfully removed " + replicator + " from log file " + filePath);
         }
@@ -84,7 +84,7 @@ public class Logger {
         writeJSONObject(filePath, jsonObject);
     }
 
-    public static void setOwner(String filePath, String newOwner) {
+    public static void setOwner(String filePath, int newOwner) {
         JSONObject jsonObject = readLogFile(filePath);
         jsonObject.put("owner", newOwner);
         System.out.println("Set " + newOwner + " as owner in log file " + filePath);
