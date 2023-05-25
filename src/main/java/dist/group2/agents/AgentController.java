@@ -2,13 +2,13 @@ package dist.group2.agents;
 
 import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
-import dist.group2.ReplicationClient;
 import net.minidev.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-
-import java.io.File;
 
 @RestController
 public class AgentController {
@@ -61,8 +61,8 @@ public class AgentController {
             e.printStackTrace();
         }
         // Execute the REST method on the next node
-        String nextNodeUrl = NamingClient.getIPAddress(DiscoveryClient.getNextID());
-        restTemplate.postForObject(nextNodeUrl + "/executeFailureAgent", failureAgent, Void.class);
+        String nextNodeIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
+        restTemplate.postForObject(nextNodeIP + "/executeFailureAgent", failureAgent, Void.class);
     }
 
     @GetMapping("/sync")
