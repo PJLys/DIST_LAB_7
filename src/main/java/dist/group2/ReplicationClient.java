@@ -39,7 +39,7 @@ public class ReplicationClient implements Runnable{
     private static final Path log_path = Path.of(new File("").getAbsolutePath().concat("\\src\\log_files"));  //Stores the local files that need to be replicated
 
     public ReplicationClient() throws IOException {
-        this.fileUnicastPort = 4451;
+        // this.fileUnicastPort = 4451;
         createDirectory(local_file_path);
         createDirectory(replicated_file_path);
         createDirectory(log_path);
@@ -86,10 +86,19 @@ public class ReplicationClient implements Runnable{
         Path filepath = local_file_path.resolve(filename);
         System.out.println("File created: "+ filepath);
         System.out.println("Sending replication request");
+
+
         try {
             String filePath = local_file_path.toString() + '/' + filename;
+
+            if (filePath.endsWith(".swp")) {
+                return 0;
+            }
+
+            System.out.println(filePath);
             String replicator_loc = NamingClient.findFile(Path.of(filePath).getFileName().toString());
             sendFileToNode(filePath, null, replicator_loc, event.kind().toString());
+            System.out.println("File change detected, sending file to owner.");
         } catch (IOException e) {
             System.out.println("Failed to send file!");
             System.out.println("\nException: \n\t");
@@ -247,8 +256,7 @@ public class ReplicationClient implements Runnable{
     public void transmitFileAsJSON(JSONObject json, String nodeIP) {
         // If the file is send to itself, use the loopback address.
         if (Objects.equals(nodeIP, IPAddress)) {
-            nodeIP = "172.0.0.1";
-            return;
+            nodeIP = "127.0.0.1";
         }
         // Write the JSON data into a buffer
         byte[] data = json.toString().getBytes(StandardCharsets.UTF_8);
@@ -285,7 +293,7 @@ public class ReplicationClient implements Runnable{
             System.out.println("\tRaw data received: " + Arrays.toString(e.getStackTrace()));
         }
 
-        restTemplate.postForObject(url, data, Void.class);
+        //restTemplate.postForObject(url, data, Void.class);
 
         System.out.println("Sent replicated version of file " + json.get("name") + " to node " + nodeIP);
     }
