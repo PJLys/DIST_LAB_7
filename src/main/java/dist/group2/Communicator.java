@@ -7,6 +7,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.messaging.Message;
+import org.springframework.stereotype.Service;
 
 import java.io.DataInputStream;
 import java.io.FileOutputStream;
@@ -19,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Service
 public class Communicator {
     static MulticastSocket multicastSocket;
     static String multicastIP;
@@ -76,7 +78,7 @@ public class Communicator {
     // -----------------------------------------------------------------------------------------------------------------
     @Bean
     public MulticastReceivingChannelAdapter multicastReceiver(DatagramSocket socket) {
-        MulticastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter(multicastIP, 4446);
+        MulticastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter(multicastIP, multicastPort);
         adapter.setOutputChannelName("Multicast");
         adapter.setSocket(socket);
         return adapter;
@@ -91,7 +93,7 @@ public class Communicator {
     }
 
     @Bean
-    public UnicastReceivingChannelAdapter unicastReceiver() {
+    public UnicastReceivingChannelAdapter discoveryUnicastReceiver() {
         UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(unicastReceivePortDiscovery);
         adapter.setOutputChannelName("DiscoveryUnicast");
         return adapter;
@@ -100,13 +102,5 @@ public class Communicator {
     @PreDestroy
     public void shutdown() {
         multicastSocket.close();
-    }
-
-    // ----------------------------------------- FILE UNICAST RECEIVER -------------------------------------------------
-    @Bean
-    public UnicastReceivingChannelAdapter fileUnicastReceiver() {
-        UnicastReceivingChannelAdapter fileAdapter = new UnicastReceivingChannelAdapter(fileUnicastPort);
-        fileAdapter.setOutputChannelName("FileUnicast");
-        return fileAdapter;
     }
 }

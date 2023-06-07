@@ -55,7 +55,7 @@ public class NamingClient {
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             String IPAddress = response.getBody();
-            System.out.println("<" + name + "> - " + fileName + " is stored at IPAddress " + IPAddress);
+            // System.out.println("<" + name + "> - " + fileName + " is stored at IPAddress " + IPAddress);
             return IPAddress;
         } catch (Exception e) {
             System.out.println(e.getMessage());

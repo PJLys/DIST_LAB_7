@@ -40,10 +40,18 @@ public class ReplicationClient implements Runnable{
     private static final Path replicated_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\replicated_files"));  //Stores the local files that need to be replicated
 
     private static final Path log_path = Path.of(new File("").getAbsolutePath().concat("\\src\\log_files"));  //Stores the local files that need to be replicated
+    private static ReplicationClient client=null;
 
-    public ReplicationClient() throws IOException {}
+    private ReplicationClient() throws IOException {}
 
-    public void createDirectories() {
+    public static ReplicationClient getInstance() throws IOException {
+        if (client == null) {
+            client = new ReplicationClient();
+        }
+        return client;
+    }
+
+    public void createDirectories() throws IOException {
         createDirectory(local_file_path);
         createDirectory(replicated_file_path);
         createDirectory(log_path);
@@ -53,7 +61,7 @@ public class ReplicationClient implements Runnable{
         ReplicationClient.failed = failed;
     }
 
-    public void createDirectory(Path path) {
+    public void createDirectory(Path path) throws IOException {
         File directory = new File(path.toString());
 
         if (!directory.exists()) {
@@ -65,10 +73,11 @@ public class ReplicationClient implements Runnable{
             }
         } else {
             System.out.println("Directory " + directory + " already exists");
+            removeDirectory(path);
         }
     }
 
-    public void setFileDirectoryWatchDog() throws IOException {
+    public void setFileDirectoryWatchDog() {
         try {
             local_file_path.register(file_daemon,
                     StandardWatchEventKinds.ENTRY_CREATE,
@@ -95,7 +104,7 @@ public class ReplicationClient implements Runnable{
                 return 0;
             }
 
-            System.out.println("Update of file detected in file with path: " + filePath + ", sending notice this to owner");
+            System.out.println("Update of file detected in file with path: " + filePath + ", sending notice to owner");
             String replicator_loc = NamingClient.findFile(Path.of(filePath).getFileName().toString());
             sendFileToNode(filePath, null, replicator_loc, event.kind().toString());
         } catch (IOException e) {
@@ -118,6 +127,16 @@ public class ReplicationClient implements Runnable{
                 watchKey.reset();
             }
             Thread.yield();
+        }
+    }
+
+    public static void removeDirectory(Path path) throws IOException {
+        File directory = new File(path.toString());
+        File[] files = directory.listFiles();
+
+        assert files != null;
+        for (File file : files) {
+            Files.deleteIfExists(Path.of(directory + "/" + file.getName()));
         }
     }
 
@@ -154,23 +173,55 @@ public class ReplicationClient implements Runnable{
         }
     }
 
-    public List<String> replicateFiles() throws IOException {
-        System.out.println("replicate files");
-        List<String> localFiles = new ArrayList<>();
+    public void replicateFiles() throws IOException {
+        System.out.println("Replicate local files");
         File folder = new File(local_file_path.toString());
         File[] files = folder.listFiles();
 
+        assert files != null;
         for (File file : files) {
             System.out.println("Replicating file: " + file.toString());
             if (file.isFile()) {
                 String fileName = file.getName();
                 String filePath = local_file_path.toString() + '/' + fileName;
                 String replicator_loc = NamingClient.findFile(Path.of(filePath).getFileName().toString());
-                System.out.println("Send file " + file.toString() + " to " + replicator_loc);
+                System.out.println("Send file " + file + " to " + replicator_loc);
                 sendFileToNode( filePath, null, replicator_loc, "ENTRY_CREATE");
             }
         }
-        return localFiles;
+    }
+
+    public void changeOwnerWhenNodeIsAdded() throws IOException, InterruptedException {
+        System.out.println("Node is added to the network, check if files need to change owner");
+        File folder = new File(replicated_file_path.toString());
+        File[] files = folder.listFiles();
+
+        assert files != null;
+        for (File file : files) {
+            if (file.isFile()) {
+                String file_name = file.getName();
+                String file_owner = NamingClient.findFile(file_name);
+
+                if (Objects.equals(IPAddress, file_owner)) {
+                    // The new node does not become the new owner of the file
+                } else {
+                    if (file_name.endsWith(".swp")) {
+                        return;
+                    }
+
+                    System.out.println("Change in file owner after new node joined. Send file " + file_name + " to its new owner " + file_owner);
+
+                    // Replicate the file to the new owner
+                    String file_path = replicated_file_path.toString() + '/' + file_name;
+                    String log_file_path = log_path.toString() + '/' + file_name + ".log";;
+                    sendFileToNode(file_path, log_file_path, file_owner, "ENTRY_CREATE");
+
+                    // Delete file on this node
+                    Files.deleteIfExists(Path.of(file_path));
+                    Files.deleteIfExists(Path.of(log_file_path));
+                }
+            }
+        }
     }
 
     @PreDestroy
@@ -190,7 +241,7 @@ public class ReplicationClient implements Runnable{
 
             // Get a list of the files in both directories
             File[] localFiles = new File(local_file_path.toString()).listFiles();
-            File[] replicatedFiles = new File(local_file_path.toString()).listFiles();
+            File[] replicatedFiles = new File(replicated_file_path.toString()).listFiles();
 
             // Test if one of the directories cannot be found
             if (localFiles == null || replicatedFiles == null) {
@@ -199,10 +250,10 @@ public class ReplicationClient implements Runnable{
             }
 
             // Send a warning to the owners of these files so they can delete their replicated versions
-            for (File file : localFiles) {
+            assert localFiles != null;for (File file : localFiles) {
                 // Get info of the file
                 String fileName = file.getName();
-                String filePath = local_file_path.toString() +  + '/' + fileName;
+                String filePath = local_file_path.toString() +  '/' + fileName;
 
                 // The destination is the owner of the file instead of the previous node
                 String destinationIP = NamingClient.findFile(fileName);
@@ -211,7 +262,10 @@ public class ReplicationClient implements Runnable{
 
                 // Warn the owner of the file to delete the replicated file
                 sendFileToNode(filePath, null, destinationIP, "ENTRY_DELETE");
+            if (!Objects.equals(destinationIP, IPAddress)) {
+                sleep(10);
             }
+        }
 
             // Send the replicated files and their logs to the previous node which will become the new owner of the file.
             // When the previous node already stores this file locally -> send it to its previous node
@@ -220,17 +274,32 @@ public class ReplicationClient implements Runnable{
 
                 // Get info of the file
                 String fileName = file.getName();
-                String filePath = replicated_file_path.toString() +  + '/' + fileName;
-                String logPath = log_path.toString() +  + '/' + fileName + ".log";
+                String filePath = replicated_file_path.toString() + '/' + fileName;
+                String logPath = log_path.toString() + '/' + fileName + ".log";
 
                 // Transfer the file and its log to the previous node
                 sendFileToNode(filePath, logPath, previousNodeIP, "ENTRY_SHUTDOWN_REPLICATE");
+                if (!Objects.equals(previousNodeIP, IPAddress)) {
+                    sleep(10);
+                }
             }
         }
     }
 
+    public void sleep(int time) {
+        try {
+            Thread.sleep(time);
+        } catch (Exception e) {
+            System.out.println("ERROR - Sleep failed");
+            System.out.println("\tError Message: " + e.getMessage());
+            System.out.println("\tError Stack Trace: " + Arrays.toString(e.getStackTrace()));
+        }
+    }
+
     public void sendFileToNode(String filePath, String logPath, String nodeIP, String extra_message) throws IOException {
-        System.out.println(filePath + "  "+ logPath + "  "+ nodeIP + "  "+ extra_message);
+        if (filePath.endsWith(".swp")) {
+            return;
+        }
 
         // Create JSON object from File
         JSONObject jo = new JSONObject();
@@ -262,10 +331,10 @@ public class ReplicationClient implements Runnable{
 
     public void updateFile(JSONObject json, String nodeIP) throws IOException {
         if (Objects.equals(nodeIP, IPAddress)) {
-            System.out.println("Sent replicated version of file " + json.get("name") + " to node " + nodeIP + " with action " + json.get("extra_message") + " to itself");
+            System.out.println("Send replicated version of file " + json.get("name") + " with action " + json.get("extra_message") + " to itself");
             implementUpdate(json);
         } else {
-            System.out.println("Sent replicated version of file " + json.get("name") + " to node " + nodeIP + " with action " + json.get("extra_message") + " to node with IP " + nodeIP);
+            System.out.println("Send replicated version of file " + json.get("name") + " with action " + json.get("extra_message") + " to node with IP " + nodeIP);
             transmitFileAsJSON(json, nodeIP);
         }
     }
@@ -337,31 +406,22 @@ public class ReplicationClient implements Runnable{
         String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(System.currentTimeMillis()));
 
         if (Objects.equals(extra_message, "ENTRY_SHUTDOWN_REPLICATE")) {
-            boolean fileFoundLocally = fileStoredLocally(file_name);
+            // Store the replicated file
+            FileOutputStream os_file = new FileOutputStream(file_path);
+            os_file.write(data.getBytes());
+            os_file.close();
 
-            if (fileFoundLocally) {
-                // Find the IP address of the previous node
-                int previousNodeID = DiscoveryClient.getPreviousID();
-                String previousNodeIP = NamingClient.getIPAddress(previousNodeID);
+            // Store the log of the replicated file
+            os_file = new FileOutputStream(log_file_path);
+            String update_text = date + " - Change of owner caused by shutdown.\n";
+            String log_data = (String) json.get("log_data");
+            os_file.write((log_data + update_text).getBytes());
+            os_file.close();
 
-                // Retransfer the file and its log to the previous node. The current node is the owner, so it should save the log file.
-                FileOutputStream os_file = new FileOutputStream(log_file_path);
-                os_file.write((log_data).getBytes());
-                os_file.close();
-                // Edit log
-                Logger.setOwner(log_file_path, this.nodeID);
-                Logger.removeReplicator();
-                Logger.addReplicator(log_file_path, previousNodeID);
-                // Remove log data, as the current node is the owner
-                json.remove("log_data");
-                updateFile(json, previousNodeIP);
-            } else {
-                // Store the replicated file
-                FileOutputStream os_file = new FileOutputStream(file_path);
-                os_file.write(data.getBytes());
-                os_file.close();
-
-            }
+            // Edit log
+            Logger.setOwner(log_file_path, this.nodeID);
+            Logger.removeReplicator();
+            Logger.addReplicator(log_file_path, this.nodeID);
         } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
             // Store the replicated file
             FileOutputStream os_file = new FileOutputStream(file_path);
