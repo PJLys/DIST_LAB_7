@@ -4,10 +4,7 @@ package dist.group2;
 import jakarta.servlet.http.HttpServletRequest;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -25,5 +22,10 @@ public class ReplicationController {
     public void replicateFile(HttpServletRequest request, @RequestBody JSONObject fileMessage) throws IOException {
         String senderIP = request.getRemoteAddr();
         client.replicateFile(fileMessage, senderIP);
+    }
+
+    @PostMapping("{filename}/{replicator}")
+    public void addReplicator(@PathVariable("filename") String fileName, @PathVariable int replicator) {
+        Logger.addReplicator(ReplicationClient.getLogFilePath().resolve(fileName + ".log").toString(), replicator);
     }
 }

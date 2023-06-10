@@ -129,7 +129,7 @@ public class Client {
      * @return the ID of the node
      */
     public static int getNodeIdForIp(String nodeIP) {
-        String url = nodeIP + "/nodeID";
+        String url = nodeIP + "/client/nodeID";
         try {
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
@@ -139,5 +139,29 @@ public class Client {
         } catch (Exception e) {
             throw new RuntimeException("Failed to find ID of node with IP " + nodeIP);
         }
+    }
+
+    /**
+     * Checks if the node with IP address nodeIP owns the file with name fileName
+     * @param nodeIP the IP address of the node
+     * @param fileName the name of the file
+     * @return true if the node owns the file, false otherwise
+     */
+    public static boolean checkIfOwner(String nodeIP, String fileName) {
+        // Create a RestTemplate instance
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Determine the request URL based on the IP address and filename
+        String requestUrl = "http://" + nodeIP + "/client/" + fileName + "/owner";
+
+        try {
+            // Send the HTTP request
+            ResponseEntity<Boolean> response = restTemplate.getForEntity(requestUrl, Boolean.class);
+            return Boolean.TRUE.equals(response.getBody());
+        } catch (Exception e) {
+            // Handle any exceptions that may occur during the request
+            e.printStackTrace();
+        }
+        return false;
     }
 }

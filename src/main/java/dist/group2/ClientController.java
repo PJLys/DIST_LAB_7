@@ -6,7 +6,6 @@ import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 
@@ -22,11 +21,11 @@ public class ClientController {
         this.client = client;
     }
 
-    @GetMapping("/{filename}/exists")
-    public boolean checkExistence(@PathVariable("filename") String filename){
-        File localFile = new File(ReplicationClient.getLocalFilePath().toString() + "/" + filename);
-        File replicatedFile = new File(ReplicationClient.getReplicatedFilePath().toString() + "/" + filename);
-        return (localFile.exists() | replicatedFile.exists());
+    @GetMapping("{filename}/owner")
+    public boolean checkIfOwner(@PathVariable("filename") String filename) {
+        // If this node owns the file, it should have a log file for it
+        File logFile = new File(ReplicationClient.getLogFilePath().toString() + "/" + filename + ".log");
+        return (logFile.exists());
     }
 
     @GetMapping("{filename}/{request}")

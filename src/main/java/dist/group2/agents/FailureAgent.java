@@ -1,14 +1,14 @@
 package dist.group2.agents;
+import dist.group2.Client;
 import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
 import dist.group2.ReplicationClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.InetAddress;
 
 
 public class FailureAgent implements Runnable, Serializable {
@@ -32,53 +32,34 @@ public class FailureAgent implements Runnable, Serializable {
             // Check if the failing node is the owner of the file
             int ownerID = NamingClient.findFileNodeID(file.getName());
             if (ownerID == DiscoveryClient.hashValue(String.valueOf(failingNodeId))) {
-                // Check if the new owner already has the file
+                // Check if the new owner already owns the file. Only send it if it does not own it yet
                 String newOwnerIP = NamingClient.getIPAddressPreviousNode(ownerID);
-
-                // Update and send the log file
-                String logPath = ReplicationClient.getLogFilePath().resolve(file.getName() + ".log").toString();
-                try {
-                    FileWriter fileWriter = new FileWriter(logPath, true);
-                    fileWriter.write("Owner changed from " + NamingClient.findFile(file.getName()) + " to " + newOwnerIP);
-                    fileWriter.close();
-                } catch (IOException e) {
-                    System.out.println("An error occurred while appending text to the log file of file " + file.getName() + " while executing FailureAgent");
-                    e.printStackTrace();
+                if (Client.checkIfOwner(newOwnerIP, file.getName())) {
+                    // Add the current node to the replicated files
+                    RestTemplate restTemplate = new RestTemplate();
+                    // Determine the request URL based on the IP address and filename
+                    String requestUrl = "http://" + newOwnerIP + "/api/" + file.getName() + "/" + DiscoveryClient.getCurrentID();
+                    try {
+                        // Send the HTTP request
+                        ResponseEntity<Boolean> response = restTemplate.getForEntity(requestUrl, Boolean.class);
+                    } catch (Exception e) {
+                        // Handle any exceptions that may occur during the request
+                        System.out.println("Failed to add this node to the replicator list of file " + file.getName() + " on node " + newOwnerIP);
+                        e.printStackTrace();
+                    }
                 }
-
-
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-                // Change to the new sendFileMethod
-
-
-//                if (!fileIsExisting(newOwnerIP, file.getName())) {
-                    // Send the file to the new owner
-//                     ReplicationClient.sendFile(file.getPath(), newOwnerIP);
-//                }
-//                 ReplicationClient.sendFileToNode(file.getPath(), newOwnerIP);
+                else {
+                    // Send the file and its log
+                    String logPath = ReplicationClient.getLogFilePath().resolve(file.getName() + ".log").toString();
+                    try {
+                        ReplicationClient.sendFileToNode(file.getAbsolutePath(), logPath, newOwnerIP, "ENTRY_CREATE");
+                    } catch (IOException e) {
+                        System.out.println("Error occurred while sending file" + file.getName() + " to " + newOwnerIP + " by failure agent");
+                        e.printStackTrace();
+                    }
+                }
             }
         }
-    }
-
-    private boolean fileIsExisting(String nodeIP, String fileName) {
-        String url = nodeIP +  "/files/existence?fileName=" + fileName;
-        RestTemplate restTemplate = new RestTemplate();
-        return Boolean.TRUE.equals(restTemplate.getForObject(url, Boolean.class));
     }
 
     public Boolean shouldTerminate() {
