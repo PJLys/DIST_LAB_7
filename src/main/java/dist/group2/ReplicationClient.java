@@ -19,7 +19,7 @@ import java.util.*;
 public class ReplicationClient implements Runnable{
     private static boolean failed = false;
     private static String nodeName;
-    private static final int nodeID = DiscoveryClient.hashValue(nodeName);
+    private static int nodeID;
     private static String IPAddress;
     WatchService file_daemon = FileSystems.getDefault().newWatchService();
     private static final Path local_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\local_files"));  //Stores the local files that need to be replicated
@@ -32,6 +32,7 @@ public class ReplicationClient implements Runnable{
         try {
             nodeName = InetAddress.getLocalHost().getHostName();
             IPAddress = InetAddress.getLocalHost().getHostAddress();
+            nodeID = DiscoveryClient.hashValue(nodeName);
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
