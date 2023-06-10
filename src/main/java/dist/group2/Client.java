@@ -122,4 +122,22 @@ public class Client {
     private Optional<Boolean> getLock(String filename) {
         return this.syncAgent.getLock(filename);
     }
+
+    /**
+     * Request the ID of a node
+     * @param nodeIP the IP address of the node to request
+     * @return the ID of the node
+     */
+    public static int getNodeIdForIp(String nodeIP) {
+        String url = nodeIP + "/nodeID";
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            int nodeID = Integer.parseInt(Objects.requireNonNull(response.getBody()));
+            System.out.println("Node with IP " + nodeIP + " has ID " + nodeID);
+            return nodeID;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find ID of node with IP " + nodeIP);
+        }
+    }
 }

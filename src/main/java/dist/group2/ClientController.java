@@ -5,7 +5,6 @@ import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,7 +15,6 @@ import java.io.File;
         path = "client"
 )
 public class ClientController {
-    private final RestTemplate restTemplate = new RestTemplate();
     private final Client client;
 
     @Autowired
@@ -54,17 +52,5 @@ public class ClientController {
     @GetMapping("nodeID")
     public int getNodeID() {
         return DiscoveryClient.getCurrentID();
-    }
-
-    public int getNodeIdForIp(String nodeIP) {
-        String url = nodeIP + "/nodeID";
-        try {
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            int nodeID = Integer.parseInt(response.getBody());
-            System.out.println("Node with IP " + nodeIP + " has ID " + nodeID);
-            return nodeID;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to find ID of node with IP " + nodeIP);
-        }
     }
 }
