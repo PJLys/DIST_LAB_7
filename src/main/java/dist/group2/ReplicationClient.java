@@ -1,29 +1,16 @@
 package dist.group2;
 
 import jakarta.annotation.PreDestroy;
-import jakarta.servlet.http.HttpServletRequest;
-import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
-import net.minidev.json.parser.ParseException;
-import org.hibernate.cfg.NotYetImplementedException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
-import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -33,8 +20,6 @@ public class ReplicationClient implements Runnable{
     private final String nodeName = InetAddress.getLocalHost().getHostName();
     private final int nodeID = DiscoveryClient.hashValue(nodeName);
     private final String IPAddress = InetAddress.getLocalHost().getHostAddress();
-    UnicastReceivingChannelAdapter fileAdapter;
-
     WatchService file_daemon = FileSystems.getDefault().newWatchService();
     private static final Path local_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\local_files"));  //Stores the local files that need to be replicated
     private static final Path replicated_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\replicated_files"));  //Stores the local files that need to be replicated
@@ -191,7 +176,7 @@ public class ReplicationClient implements Runnable{
         }
     }
 
-    public void changeOwnerWhenNodeIsAdded() throws IOException, InterruptedException {
+    public void changeOwnerWhenNodeIsAdded() throws IOException {
         System.out.println("Node is added to the network, check if files need to change owner");
         File folder = new File(replicated_file_path.toString());
         File[] files = folder.listFiles();
@@ -213,7 +198,7 @@ public class ReplicationClient implements Runnable{
 
                     // Replicate the file to the new owner
                     String file_path = replicated_file_path.toString() + '/' + file_name;
-                    String log_file_path = log_path.toString() + '/' + file_name + ".log";;
+                    String log_file_path = log_path.toString() + '/' + file_name + ".log";
                     sendFileToNode(file_path, log_file_path, file_owner, "ENTRY_CREATE");
 
                     // Delete file on this node
@@ -332,7 +317,7 @@ public class ReplicationClient implements Runnable{
     public void updateFile(JSONObject json, String nodeIP) throws IOException {
         if (Objects.equals(nodeIP, IPAddress)) {
             System.out.println("Send replicated version of file " + json.get("name") + " with action " + json.get("extra_message") + " to itself");
-            implementUpdate(json);
+            implementUpdate(json, nodeIP);
         } else {
             System.out.println("Send replicated version of file " + json.get("name") + " with action " + json.get("extra_message") + " to node with IP " + nodeIP);
             transmitFileAsJSON(json, nodeIP);
@@ -388,12 +373,12 @@ public class ReplicationClient implements Runnable{
         return false;
     }
 
-    public void replicateFile(JSONObject json) throws IOException {
-        System.out.println("Received file " + json.get("name") + " using REST with action " + json.get("extra_message"));
-        implementUpdate(json);
+    public void replicateFile(JSONObject json, String senderIP) throws IOException {
+        System.out.println("Received file " + json.get("name") + " using REST with action " + json.get("extra_message") + " from node with IP address " + senderIP);
+        implementUpdate(json, senderIP);
     }
 
-    public void implementUpdate(JSONObject json) throws IOException {
+    public void implementUpdate(JSONObject json, String senderIP) throws IOException {
         String file_name = (String) json.get("name");
         String extra_message = (String) json.get("extra_message");
         String data = (String) json.get("data");
@@ -401,9 +386,6 @@ public class ReplicationClient implements Runnable{
         String log_file_path = log_path.toString() + '/' + file_name + ".log";
 
         System.out.println("Implement update " + extra_message + " of file " + file_name);
-
-        // Get current timestamp
-        String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(System.currentTimeMillis()));
 
         if (Objects.equals(extra_message, "ENTRY_SHUTDOWN_REPLICATE")) {
             // Store the replicated file
@@ -413,26 +395,33 @@ public class ReplicationClient implements Runnable{
 
             // Store the log of the replicated file
             os_file = new FileOutputStream(log_file_path);
-            String update_text = date + " - Change of owner caused by shutdown.\n";
             String log_data = (String) json.get("log_data");
-            os_file.write((log_data + update_text).getBytes());
+            os_file.write(log_data.getBytes());
             os_file.close();
 
-            // Edit log
+            // Edit log: owner has changed
             Logger.setOwner(log_file_path, this.nodeID);
-            Logger.removeReplicator();
-            Logger.addReplicator(log_file_path, this.nodeID);
         } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
             // Store the replicated file
             FileOutputStream os_file = new FileOutputStream(file_path);
             os_file.write(data.getBytes());
             os_file.close();
 
-            // Create a log for the file
-            List<String> replicators = new ArrayList<>();
-            replicators.add(request.getRemoteAddr());
-            Logger.createLogFile(log_file_path, String.valueOf(this.nodeID), replicators);
-            String new_text = date + " - File is added & receives first owner.\n";
+            // Check if a log file has been sent
+            String log_data = (String) json.get("log_data");
+            if (log_data != null) {
+                // Log file has been sent -> store it and update the owner
+                os_file = new FileOutputStream(log_file_path);
+                os_file.write(log_data.getBytes());
+                os_file.close();
+                Logger.setOwner(log_file_path, this.nodeID);
+            }
+            else {
+                // Create a new log file
+                List<Integer> replicators = new ArrayList<>();
+                replicators.add(Client.getNodeIdForIp(senderIP));
+                Logger.createLogFile(log_file_path, this.nodeID, replicators);
+            }
         } else if (Objects.equals(extra_message, "ENTRY_MODIFY")) {
             // Store the replicated file
             FileOutputStream os_file = new FileOutputStream(file_path);
