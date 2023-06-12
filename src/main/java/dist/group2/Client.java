@@ -137,6 +137,7 @@ public class Client {
             System.out.println("Node with IP " + nodeIP + " has ID " + nodeID);
             return nodeID;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Failed to find ID of node with IP " + nodeIP);
         }
     }
