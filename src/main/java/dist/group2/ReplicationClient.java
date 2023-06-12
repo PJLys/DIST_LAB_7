@@ -46,6 +46,7 @@ public class ReplicationClient implements Runnable{
     }
 
     public void createDirectories() throws IOException {
+        System.out.println("Creating directories");
         createDirectory(local_file_path);
         createDirectory(replicated_file_path);
         createDirectory(log_path);
@@ -421,7 +422,6 @@ public class ReplicationClient implements Runnable{
             if (Objects.equals(log_data, "null")) {
                 // Create a new log file
                 List<Integer> replicators = new ArrayList<>();
-                System.out.println("Sender: " + senderIP + ", current node: " + IPAddress);
                 if (Objects.equals(senderIP, IPAddress)) {
                     replicators.add(DiscoveryClient.getCurrentID());
                 }
