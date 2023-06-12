@@ -22,10 +22,10 @@ public class ReplicationClient implements Runnable{
     private static int nodeID;
     private static String IPAddress;
     WatchService file_daemon = FileSystems.getDefault().newWatchService();
-    private static final Path local_file_path = Paths.get("").resolve("src/local_files");  //Stores the local files that need to be replicated
-    private static final Path replicated_file_path = Paths.get("").resolve("src/replicated_files");  //Stores the local files that need to be replicated
+    private static final Path local_file_path = Paths.get("").toAbsolutePath().resolve("src/local_files");  //Stores the local files that need to be replicated
+    private static final Path replicated_file_path = Paths.get("").toAbsolutePath().resolve("src/replicated_files");  //Stores the local files that need to be replicated
 
-    private static final Path log_path = Paths.get("").resolve("src/log_files");  //Stores the local files that need to be replicated
+    private static final Path log_path = Paths.get("").toAbsolutePath().resolve("src/log_files");  //Stores the local files that need to be replicated
     private static ReplicationClient client=null;
 
     private ReplicationClient() throws IOException {
@@ -159,8 +159,7 @@ public class ReplicationClient implements Runnable{
         String str = "Text";
         BufferedWriter writer;
         for (String fileName : fileNames) {
-            System.out.println("Added file: " + local_file_path + "/" + fileName);
-            System.out.println(local_file_path);
+            System.out.println("Adding file: " + local_file_path + "/" + fileName);
             writer = new BufferedWriter(new FileWriter(local_file_path.resolve(fileName).toFile()));
             writer.write(str);
             writer.flush();
