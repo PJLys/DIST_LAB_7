@@ -58,7 +58,6 @@ public class ClientApplication {
     @PreDestroy
     public void shutdown() {
         replicationthread.stop();
-
     }
 
     public static void failure() {
