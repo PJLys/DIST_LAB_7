@@ -68,7 +68,7 @@ public class Client {
         RestTemplate restTemplate = new RestTemplate();
 
         // Determine the request URL based on the IP address and filename
-        String requestUrl = "http://" + ipaddr + "/" + filename + "/" + (method ? "w" : "r");
+        String requestUrl = "http://" + ipaddr + ":" + 8082 + "/" + filename + "/" + (method ? "w" : "r");
 
         try {
             // Send the HTTP request
@@ -129,12 +129,12 @@ public class Client {
      * @return the ID of the node
      */
     public static int getNodeIdForIp(String nodeIP) {
-        String url = "http://" + nodeIP + "/client/nodeID";
+        String url = "http://" + nodeIP + ":" + 8082 + "/client/nodeID";
         try {
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             int nodeID = Integer.parseInt(Objects.requireNonNull(response.getBody()));
-            System.out.println("Node with IP " + nodeIP + ":" + 8082 + " has ID " + nodeID);
+            System.out.println("Node with IP " + nodeIP + " has ID " + nodeID);
             return nodeID;
         } catch (Exception e) {
             e.printStackTrace();
