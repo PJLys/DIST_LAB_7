@@ -418,6 +418,7 @@ public class ReplicationClient implements Runnable{
 
             // Check if a log file has been sent
             String log_data = (String) json.get("log_data");
+            System.out.println("Log_data for received file " + file_name + " " + log_data);
             if (log_data != null) {
                 // Log file has been sent -> store it and update the owner
                 os_file = new FileOutputStream(log_file_path);
