@@ -421,7 +421,12 @@ public class ReplicationClient implements Runnable{
             if (Objects.equals(log_data, "null")) {
                 // Create a new log file
                 List<Integer> replicators = new ArrayList<>();
-                replicators.add(Client.getNodeIdForIp(senderIP));
+                if (senderIP == IPAddress) {
+                    replicators.add(DiscoveryClient.getCurrentID());
+                }
+                else {
+                    replicators.add(Client.getNodeIdForIp(senderIP));
+                }
                 Logger.createLogFile(log_file_path, nodeID, replicators);
             }
             else {
