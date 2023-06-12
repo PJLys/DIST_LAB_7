@@ -155,6 +155,9 @@ public class ReplicationClient implements Runnable{
         fileNames.add("2_" + name);
         fileNames.add("3_" + name);
 
+        // Create the directory in case it does not exist yet
+        Files.createDirectories(local_file_path);
+
         // Create the files
         String str = "Text";
         BufferedWriter writer;
