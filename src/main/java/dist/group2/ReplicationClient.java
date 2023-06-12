@@ -417,15 +417,14 @@ public class ReplicationClient implements Runnable{
             os_file.close();
 
             // Check if a log file has been sent
-            Object log_object = json.get("log_data");
-            if (log_object == null) {
+            String log_data = (String) json.get("log_data");
+            if (Objects.equals(log_data, "null")) {
                 // Create a new log file
                 List<Integer> replicators = new ArrayList<>();
                 replicators.add(Client.getNodeIdForIp(senderIP));
                 Logger.createLogFile(log_file_path, nodeID, replicators);
             }
             else {
-                String log_data = (String) log_object;
                 // Log file has been sent -> store it and update the owner
                 os_file = new FileOutputStream(log_file_path);
                 os_file.write(log_data.getBytes());
