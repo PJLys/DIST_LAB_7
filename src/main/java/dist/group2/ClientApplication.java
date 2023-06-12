@@ -40,15 +40,14 @@ public class ClientApplication {
         ReplicationController replicationController = new ReplicationController(replicationClient);
 
         System.out.println("<---> " + name + " Instantiated with IP " + IPAddress + " <--->");
+        replicationClient.createDirectories();
         replicationClient.addFiles();
         discoveryClient.bootstrap();
         NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
         NamingClient.setName(name);
 
-        replicationClient.createDirectories();
         replicationClient.replicateFiles();
 
-        replicationClient.addFiles();
         replicationClient.setFileDirectoryWatchDog();
         replicationClient.replicateFiles();
 

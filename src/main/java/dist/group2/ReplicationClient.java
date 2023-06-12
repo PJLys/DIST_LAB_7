@@ -46,7 +46,6 @@ public class ReplicationClient implements Runnable{
     }
 
     public void createDirectories() throws IOException {
-        System.out.println("Creating directories");
         createDirectory(local_file_path);
         createDirectory(replicated_file_path);
         createDirectory(log_path);
