@@ -24,7 +24,7 @@ public class ReplicationController {
         client.replicateFile(fileMessage, senderIP);
     }
 
-    @PostMapping("{filename}/{replicator}")
+    @PostMapping("{filename}/replicator/{replicator}")
     public void addReplicator(@PathVariable("filename") String fileName, @PathVariable int replicator) {
         Logger.addReplicator(ReplicationClient.getLogFilePath().resolve(fileName + ".log").toString(), replicator);
     }
