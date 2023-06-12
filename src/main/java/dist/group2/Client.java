@@ -134,7 +134,7 @@ public class Client {
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             int nodeID = Integer.parseInt(Objects.requireNonNull(response.getBody()));
-            System.out.println("Node with IP " + nodeIP + " has ID " + nodeID);
+            System.out.println("Node with IP " + nodeIP + ":" + 8082 + " has ID " + nodeID);
             return nodeID;
         } catch (Exception e) {
             e.printStackTrace();
@@ -153,7 +153,7 @@ public class Client {
         RestTemplate restTemplate = new RestTemplate();
 
         // Determine the request URL based on the IP address and filename
-        String requestUrl = "http://" + nodeIP + "/client/" + fileName + "/owner";
+        String requestUrl = "http://" + nodeIP + ":" + 8082 + "/client/" + fileName + "/owner";
 
         try {
             // Send the HTTP request
