@@ -160,6 +160,7 @@ public class ReplicationClient implements Runnable{
         BufferedWriter writer;
         for (String fileName : fileNames) {
             System.out.println("Added file: " + local_file_path + "/" + fileName);
+            System.out.println(local_file_path);
             writer = new BufferedWriter(new FileWriter(local_file_path.resolve(fileName).toFile()));
             writer.write(str);
             writer.flush();
