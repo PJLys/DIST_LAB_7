@@ -129,7 +129,7 @@ public class Client {
      * @return the ID of the node
      */
     public static int getNodeIdForIp(String nodeIP) {
-        String url = nodeIP + "/client/nodeID";
+        String url = "http://" + nodeIP + "/client/nodeID";
         try {
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
