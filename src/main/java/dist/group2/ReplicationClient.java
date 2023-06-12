@@ -22,10 +22,10 @@ public class ReplicationClient implements Runnable{
     private static int nodeID;
     private static String IPAddress;
     WatchService file_daemon = FileSystems.getDefault().newWatchService();
-    private static final Path local_file_path = Path.of("", "src", "local_files");  //Stores the local files that need to be replicated
-    private static final Path replicated_file_path = Path.of("","src", "replicated_files");  //Stores the local files that need to be replicated
+    private static final Path local_file_path = Paths.get("").resolve("src/local_files");  //Stores the local files that need to be replicated
+    private static final Path replicated_file_path = Paths.get("").resolve("src/replicated_files");  //Stores the local files that need to be replicated
 
-    private static final Path log_path = Path.of("","src", "log_files");  //Stores the local files that need to be replicated
+    private static final Path log_path = Paths.get("").resolve("src/log_files");  //Stores the local files that need to be replicated
     private static ReplicationClient client=null;
 
     private ReplicationClient() throws IOException {
