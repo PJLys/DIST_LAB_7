@@ -28,11 +28,13 @@ public class Logger {
     }
 
     public static void createLogFile(String filePath, int owner, List<Integer> replicators) {
+        System.out.println("Creating log file: " + filePath);
         JSONObject logData = new JSONObject();
         JSONArray replicatorsArray = new JSONArray();
         replicatorsArray.addAll(replicators);
         logData.put("owner", owner);
         logData.put("replicators", replicatorsArray);
+        System.out.println("logData: " + logData.toJSONString());
         writeJSONObject(filePath, logData);
         System.out.println("Log file " + filePath + " created");
     }
