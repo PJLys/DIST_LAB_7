@@ -86,6 +86,7 @@ public class Logger {
 
     public static void setOwner(String filePath, int newOwner) {
         JSONObject jsonObject = readLogFile(filePath);
+        System.out.println("Log file filePath: " + jsonObject.toJSONString());
         jsonObject.put("owner", newOwner);
         System.out.println("Set " + newOwner + " as owner in log file " + filePath);
         writeJSONObject(filePath, jsonObject);
