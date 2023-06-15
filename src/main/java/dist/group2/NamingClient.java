@@ -58,7 +58,9 @@ public class NamingClient {
             // System.out.println("<" + name + "> - " + fileName + " is stored at IPAddress " + IPAddress);
             return IPAddress;
         } catch (Exception e) {
+            System.out.println("Error occurred while finding location of file " + fileName);
             System.out.println(e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("There are no nodes in the database");
         }
     }
