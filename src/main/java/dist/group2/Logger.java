@@ -43,8 +43,8 @@ public class Logger {
 
     private static void writeJSONObject(String filePath, JSONObject jsonObject) {
         try (FileWriter fileWriter = new FileWriter(filePath)) {
-            fileWriter.write(jsonObject.toJSONString());
-            readLogFile(filePath);
+            fileWriter.write(jsonObject.toJSONString() + "\n");
+            fileWriter.close();
         } catch (IOException e) {
             System.out.println("Error while writing log file " + filePath);
             e.printStackTrace();
@@ -55,14 +55,7 @@ public class Logger {
         try {
             String json = Files.readString(Paths.get(filePath));
             byte[] bytes = Files.readAllBytes(Paths.get(filePath));
-//            String json = new String(Files.readAllBytes(Paths.get(filePath)));
-            System.out.println("Read log file " + filePath);
-            System.out.println("String: " + json);
-            System.out.println("Bytes: " + Arrays.toString(bytes));
             return (JSONObject) JSONValue.parseWithException(json);
-//            JSONParser jsonParser = new JSONParser();
-//            Object object = jsonParser.parse(new FileReader(filePath));
-//            return (JSONObject) object;
         } catch (IOException e) {
 //            e.printStackTrace();
             System.out.println("Failed to read log file " + filePath);
