@@ -18,10 +18,9 @@ public class Client {
     private static final Path owned_files = Path.of("" ,"src", "replicatd_files");
     private final SyncAgent syncAgent;
     public Client() {
-        SyncAgent syncAgent = SyncAgent.getAgent();
-        Thread syncThread = new Thread(syncAgent);
-        this.syncAgent = syncAgent;
-        syncThread.start();
+        this.syncAgent = SyncAgent.getAgent();
+//        Thread syncThread = new Thread(this.syncAgent);
+//        syncThread.start();
     }
 
     public void readfile(String filename) throws RuntimeException {

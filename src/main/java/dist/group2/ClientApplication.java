@@ -22,7 +22,7 @@ public class ClientApplication {
     @Autowired
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
         this.discoveryClient = discoveryClient;
-//        this.syncAgent = SyncAgent.getAgent();
+        this.syncAgent = SyncAgent.getAgent();
 
         String name = InetAddress.getLocalHost().getHostName();
         String IPAddress = InetAddress.getLocalHost().getHostAddress();
