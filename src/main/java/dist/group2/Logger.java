@@ -47,6 +47,7 @@ public class Logger {
 
     public static void writeJSONString(String filePath, String jsonString) {
         try (FileWriter fileWriter = new FileWriter(filePath)) {
+            System.out.println("Writing log file " + filePath + ":" + jsonString);
             fileWriter.write(jsonString);
             fileWriter.close();
         } catch (IOException e) {
