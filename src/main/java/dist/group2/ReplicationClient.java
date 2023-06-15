@@ -318,8 +318,8 @@ public class ReplicationClient implements Runnable{
             jo.put("log_data", "null");
         }
         else {
-            System.out.println("Send log file with it: " + Logger.readLogFile(filePath).toString());
-            jo.put("log_data", Logger.readLogFile(filePath).toString());
+            System.out.println("Send log file with it: " + Logger.readLogFileString(filePath));
+            jo.put("log_data", Logger.readLogFileString(filePath));
         }
 
         updateFile(jo, nodeIP);

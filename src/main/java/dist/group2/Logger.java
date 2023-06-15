@@ -59,12 +59,10 @@ public class Logger {
 
     public static JSONObject readLogFile(String filePath) {
         try {
-            String json = Files.readString(Paths.get(filePath));
-            System.out.println("Read log file " + filePath + ":" + json);
-            return (JSONObject) JSONValue.parseWithException(json);
-        } catch (IOException e) {
-//            e.printStackTrace();
-            System.out.println("Failed to read log file " + filePath);
+            String json = readLogFileString(filePath);
+            if (json != null) {
+                return (JSONObject) JSONValue.parseWithException(json);
+            }
         } catch (ParseException e) {
             System.out.println("Failed to parse log file " + filePath);
         }
@@ -72,6 +70,17 @@ public class Logger {
             e.printStackTrace();
         }
         return new JSONObject();
+    }
+
+    public static String readLogFileString(String filePath) {
+        try {
+            String json = Files.readString(Paths.get(filePath));
+            System.out.println("Read log file " + filePath + ":" + json);
+            return json;
+        } catch (IOException e) {
+            System.out.println("Failed to read log file " + filePath);
+        }
+        return null;
     }
 
     public static void addReplicator(String filePath, int replicator) {
