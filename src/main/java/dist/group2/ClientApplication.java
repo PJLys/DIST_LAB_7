@@ -1,5 +1,6 @@
 package dist.group2;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import dist.group2.agents.AgentController;
 import dist.group2.agents.SyncAgent;
@@ -15,6 +16,7 @@ import java.net.InetAddress;
 public class ClientApplication {
     public static ApplicationContext context;
     private DiscoveryClient discoveryClient;
+    private ReplicationClient replicationClient;
     private SyncAgent syncAgent;
     private static AgentController agentController;
     Thread replicationthread;
@@ -23,6 +25,7 @@ public class ClientApplication {
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
         this.discoveryClient = discoveryClient;
         this.syncAgent = SyncAgent.getAgent();
+        this.replicationClient = ReplicationClient.getInstance();
 
         String name = InetAddress.getLocalHost().getHostName();
         String IPAddress = InetAddress.getLocalHost().getHostAddress();
@@ -36,23 +39,28 @@ public class ClientApplication {
 
         Communicator.init(multicastGroup, multicastPort, fileUnicastPort, multicastIP, unicastPortDiscovery);
         this.discoveryClient.init(name, IPAddress, unicastPortDiscovery, namingPort);
-        ReplicationClient replicationClient = ReplicationClient.getInstance();
-        ReplicationController replicationController = new ReplicationController(replicationClient);
-
-        System.out.println("<---> " + name + " Instantiated with IP " + IPAddress + " <--->");
-        discoveryClient.bootstrap();
         NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
         NamingClient.setName(name);
 
-        replicationClient.createDirectories();
-        replicationClient.addFiles();
-        replicationClient.setFileDirectoryWatchDog();
-        replicationClient.replicateFiles();
+        System.out.println("<---> " + name + " Instantiated with IP " + IPAddress + " <--->");
 
+    }
+
+    @PostConstruct
+    public void run() {
+        this.discoveryClient.bootstrap();
+        try {
+            this.replicationClient.createDirectories();
+            this.replicationClient.addFiles();
+            this.replicationClient.setFileDirectoryWatchDog();
+            this.replicationClient.replicateFiles();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
         replicationthread = new Thread(replicationClient);
         replicationthread.start();
     }
-
     @PreDestroy
     public void shutdown() {
         replicationthread.stop();
