@@ -50,12 +50,16 @@ public class Logger {
     private static JSONObject readLogFile(String filePath) {
         try {
             String json = new String(Files.readAllBytes(Paths.get(filePath)));
+            System.out.println(JSONValue.parseWithException(json));
             return (JSONObject) JSONValue.parseWithException(json);
         } catch (IOException e) {
 //            e.printStackTrace();
             System.out.println("Failed to read log file " + filePath);
         } catch (ParseException e) {
             System.out.println("Failed to parse log file " + filePath);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
         return new JSONObject();
     }
