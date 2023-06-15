@@ -52,7 +52,8 @@ public class Logger {
     }
     private static JSONObject readLogFile(String filePath) {
         try {
-            String json = new String(Files.readAllBytes(Paths.get(filePath)));
+            String json = Files.readString(Paths.get(filePath));
+//            String json = new String(Files.readAllBytes(Paths.get(filePath)));
             System.out.println("Read log file " + filePath);
             System.out.println(json);
             return (JSONObject) JSONValue.parseWithException(json);
