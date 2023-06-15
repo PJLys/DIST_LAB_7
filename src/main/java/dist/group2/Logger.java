@@ -11,6 +11,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Logger {
@@ -53,9 +54,11 @@ public class Logger {
     private static JSONObject readLogFile(String filePath) {
         try {
             String json = Files.readString(Paths.get(filePath));
+            byte[] bytes = Files.readAllBytes(Paths.get(filePath));
 //            String json = new String(Files.readAllBytes(Paths.get(filePath)));
             System.out.println("Read log file " + filePath);
-            System.out.println(json);
+            System.out.println("String: " + json);
+            System.out.println("Bytes: " + Arrays.toString(bytes));
             return (JSONObject) JSONValue.parseWithException(json);
 //            JSONParser jsonParser = new JSONParser();
 //            Object object = jsonParser.parse(new FileReader(filePath));
