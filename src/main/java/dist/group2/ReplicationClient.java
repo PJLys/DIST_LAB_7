@@ -207,7 +207,7 @@ public class ReplicationClient implements Runnable{
 
                     // Replicate the file to the new owner
                     String file_path = replicated_file_path.resolve(file_name).toString();
-                    String log_file_path = log_path.resolve(file_name + ".log").toString();
+                    String log_file_path = log_path.resolve(file_name).toString();
                     sendFileToNode(file_path, log_file_path, file_owner, "ENTRY_CREATE");
 
                     // Delete file on this node
@@ -269,7 +269,7 @@ public class ReplicationClient implements Runnable{
                 // Get info of the file
                 String fileName = file.getName();
                 String filePath = replicated_file_path.toString() + '/' + fileName;
-                String logPath = log_path.resolve(fileName + ".log").toString();
+                String logPath = log_path.resolve(fileName).toString();
 
                 // Transfer the file and its log to the previous node
                 sendFileToNode(filePath, logPath, previousNodeIP, "ENTRY_SHUTDOWN_REPLICATE");
@@ -393,7 +393,7 @@ public class ReplicationClient implements Runnable{
         String extra_message = (String) json.get("extra_message");
         String data = (String) json.get("data");
         String file_path = replicated_file_path.resolve(file_name).toString();
-        String log_file_path = log_path.resolve(file_name + ".log").toString();
+        String log_file_path = log_path.resolve(file_name).toString();
 
         System.out.println("Implement update " + extra_message + " of file " + file_name);
 
