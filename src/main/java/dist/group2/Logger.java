@@ -42,6 +42,8 @@ public class Logger {
 
     private static void writeJSONObject(String filePath, JSONObject jsonObject) {
         try (FileWriter fileWriter = new FileWriter(filePath)) {
+            System.out.println("Content of log file before writing:");
+            System.out.println(jsonObject.toJSONString());
             fileWriter.write(jsonObject.toJSONString());
         } catch (IOException e) {
             System.out.println("Error while writing log file " + filePath);
