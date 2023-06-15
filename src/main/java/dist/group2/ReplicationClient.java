@@ -317,6 +317,8 @@ public class ReplicationClient implements Runnable{
         if (logPath == null) {
             jo.put("log_data", "null");
         } else {
+            System.out.println("Sending log file: ");
+            System.out.println(Arrays.toString(Files.readAllBytes(Path.of(logPath))));
             jo.put("log_data", Arrays.toString(Files.readAllBytes(Path.of(logPath))));
         }
 
