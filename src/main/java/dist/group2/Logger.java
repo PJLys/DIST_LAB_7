@@ -3,7 +3,9 @@ package dist.group2;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
+import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
+import org.aspectj.apache.bcel.classfile.ClassParser;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -49,9 +51,9 @@ public class Logger {
     }
     private static JSONObject readLogFile(String filePath) {
         try {
-            String json = new String(Files.readAllBytes(Paths.get(filePath)));
-            System.out.println(JSONValue.parseWithException(json));
-            return (JSONObject) JSONValue.parseWithException(json);
+            JSONParser jsonParser = new JSONParser();
+            Object object = jsonParser.parse(new FileReader(filePath));
+            return (JSONObject) object;
         } catch (IOException e) {
 //            e.printStackTrace();
             System.out.println("Failed to read log file " + filePath);
