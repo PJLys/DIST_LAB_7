@@ -59,7 +59,7 @@ public class Logger {
     private static JSONObject readLogFile(String filePath) {
         try {
             String json = Files.readString(Paths.get(filePath));
-            byte[] bytes = Files.readAllBytes(Paths.get(filePath));
+            System.out.println("Read log file " + filePath + ":" + json);
             return (JSONObject) JSONValue.parseWithException(json);
         } catch (IOException e) {
 //            e.printStackTrace();
