@@ -432,6 +432,7 @@ public class ReplicationClient implements Runnable{
             }
             else {
                 // Log file has been sent -> store it and update the owner
+                System.out.println("Received log file " + log_file_path + " content: " + Arrays.toString(log_data.getBytes()));
                 os_file = new FileOutputStream(log_file_path);
                 os_file.write(log_data.getBytes());
                 os_file.close();
