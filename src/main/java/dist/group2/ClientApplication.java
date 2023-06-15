@@ -22,7 +22,7 @@ public class ClientApplication {
     @Autowired
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
         this.discoveryClient = discoveryClient;
-        this.syncAgent = SyncAgent.getAgent();
+//        this.syncAgent = SyncAgent.getAgent();
 
         String name = InetAddress.getLocalHost().getHostName();
         String IPAddress = InetAddress.getLocalHost().getHostAddress();
@@ -40,14 +40,12 @@ public class ClientApplication {
         ReplicationController replicationController = new ReplicationController(replicationClient);
 
         System.out.println("<---> " + name + " Instantiated with IP " + IPAddress + " <--->");
-        replicationClient.createDirectories();
-        replicationClient.addFiles();
         discoveryClient.bootstrap();
         NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
         NamingClient.setName(name);
 
-        replicationClient.replicateFiles();
-
+        replicationClient.createDirectories();
+        replicationClient.addFiles();
         replicationClient.setFileDirectoryWatchDog();
         replicationClient.replicateFiles();
 
