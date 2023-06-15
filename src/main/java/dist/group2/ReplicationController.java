@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 @RestController
-@RequestMapping(path="api/node")
+@RequestMapping(path="replication")
 public class ReplicationController {
     private final ReplicationClient client;
 
@@ -18,13 +18,13 @@ public class ReplicationController {
         this.client = client;
     }
 
-    @PostMapping
+    @PostMapping("/replicateFile")
     public void replicateFile(HttpServletRequest request, @RequestBody JSONObject fileMessage) throws IOException {
         String senderIP = request.getRemoteAddr();
         client.replicateFile(fileMessage, senderIP);
     }
 
-    @PostMapping("{filename}/replicator/{replicator}")
+    @PostMapping("{filename}/log/addReplicator/{replicator}")
     public void addReplicator(@PathVariable("filename") String fileName, @PathVariable int replicator) {
         Logger.addReplicator(ReplicationClient.getLogFilePath().resolve(fileName + ".log").toString(), replicator);
     }

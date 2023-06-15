@@ -334,7 +334,7 @@ public class ReplicationClient implements Runnable{
     }
 
     public static void transmitFileAsJSON(JSONObject json, String nodeIP) {
-        String url = "http://" + nodeIP + ":" + 8082 + "/api/node";
+        String url = "http://" + nodeIP + ":" + 8082 + "/replication/replicateFile";
         RestTemplate restTemplate = new RestTemplate();
 
         Map<String, Object> requestBody = new HashMap<>();

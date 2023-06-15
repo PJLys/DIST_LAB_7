@@ -51,9 +51,11 @@ public class Logger {
     }
     private static JSONObject readLogFile(String filePath) {
         try {
-            JSONParser jsonParser = new JSONParser();
-            Object object = jsonParser.parse(new FileReader(filePath));
-            return (JSONObject) object;
+            String json = new String(Files.readAllBytes(Paths.get(filePath)));
+            return (JSONObject) JSONValue.parseWithException(json);
+//            JSONParser jsonParser = new JSONParser();
+//            Object object = jsonParser.parse(new FileReader(filePath));
+//            return (JSONObject) object;
         } catch (IOException e) {
 //            e.printStackTrace();
             System.out.println("Failed to read log file " + filePath);
