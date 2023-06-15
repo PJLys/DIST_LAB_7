@@ -318,6 +318,7 @@ public class ReplicationClient implements Runnable{
             jo.put("log_data", "null");
         }
         else {
+            System.out.println("Send log file with it: " + Logger.readLogFile(filePath).toString());
             jo.put("log_data", Logger.readLogFile(filePath).toString());
         }
 
@@ -425,6 +426,7 @@ public class ReplicationClient implements Runnable{
                 Logger.createLogFile(log_file_path, nodeID, replicators);
             }
             else {
+                System.out.println("Received log file: " + log_data);
                 // Log file has been sent -> store it and update the owner
                 Logger.writeJSONString(log_file_path, log_data);
                 Logger.setOwner(log_file_path, nodeID);
