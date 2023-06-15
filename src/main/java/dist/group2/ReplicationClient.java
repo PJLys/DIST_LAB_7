@@ -178,7 +178,7 @@ public class ReplicationClient implements Runnable{
             if (file.isFile()) {
                 String fileName = file.getName();
                 String filePath = local_file_path.toString() + '/' + fileName;
-                String replicator_loc = NamingClient.findFile(Path.of(filePath).getFileName().toString());
+                String replicator_loc = NamingClient.findFile(fileName);
                 System.out.println("Send file " + file + " to " + replicator_loc);
                 sendFileToNode( filePath, null, replicator_loc, "ENTRY_CREATE");
             }
