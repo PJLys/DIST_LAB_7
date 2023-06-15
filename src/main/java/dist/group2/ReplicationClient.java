@@ -403,12 +403,6 @@ public class ReplicationClient implements Runnable{
             os_file.write(data.getBytes());
             os_file.close();
 
-            // Store the log of the replicated file
-            os_file = new FileOutputStream(log_file_path);
-            String log_data = (String) json.get("log_data");
-            os_file.write(log_data.getBytes());
-            os_file.close();
-
             // Edit log: owner has changed
             Logger.setOwner(log_file_path, nodeID);
         } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
