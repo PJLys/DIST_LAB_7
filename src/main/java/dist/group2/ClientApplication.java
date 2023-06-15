@@ -39,7 +39,6 @@ public class ClientApplication {
 
         Communicator.init(multicastGroup, multicastPort, fileUnicastPort, multicastIP, unicastPortDiscovery);
         this.discoveryClient.init(name, IPAddress, unicastPortDiscovery, namingPort);
-        NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
         NamingClient.setName(name);
 
         System.out.println("<---> " + name + " Instantiated with IP " + IPAddress + " <--->");
@@ -49,6 +48,7 @@ public class ClientApplication {
     @PostConstruct
     public void run() {
         this.discoveryClient.bootstrap();
+        NamingClient.setBaseUrl(this.discoveryClient.getBaseUrl());
         try {
             this.replicationClient.createDirectories();
             this.replicationClient.addFiles();
