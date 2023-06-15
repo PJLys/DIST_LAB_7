@@ -43,6 +43,7 @@ public class Logger {
     private static void writeJSONObject(String filePath, JSONObject jsonObject) {
         try (FileWriter fileWriter = new FileWriter(filePath)) {
             fileWriter.write(jsonObject.toJSONString());
+            readLogFile(filePath);
         } catch (IOException e) {
             System.out.println("Error while writing log file " + filePath);
             e.printStackTrace();
