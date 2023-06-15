@@ -42,8 +42,12 @@ public class Logger {
     }
 
     private static void writeJSONObject(String filePath, JSONObject jsonObject) {
+        writeJSONString(filePath, jsonObject.toJSONString());
+    }
+
+    public static void writeJSONString(String filePath, String jsonString) {
         try (FileWriter fileWriter = new FileWriter(filePath)) {
-            fileWriter.write(jsonObject.toJSONString() + "\n");
+            fileWriter.write(jsonString);
             fileWriter.close();
         } catch (IOException e) {
             System.out.println("Error while writing log file " + filePath);
@@ -51,6 +55,7 @@ public class Logger {
             ClientApplication.failure();
         }
     }
+
     private static JSONObject readLogFile(String filePath) {
         try {
             String json = Files.readString(Paths.get(filePath));
