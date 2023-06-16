@@ -19,8 +19,8 @@ public class Client {
     private final SyncAgent syncAgent;
     public Client() {
         this.syncAgent = SyncAgent.getAgent();
-//        Thread syncThread = new Thread(this.syncAgent);
-//        syncThread.start();
+        Thread syncThread = new Thread(this.syncAgent);
+        syncThread.start();
     }
 
     public void readfile(String filename) throws RuntimeException {
