@@ -26,8 +26,6 @@ public class FailureAgentHandler implements Runnable {
             e.printStackTrace();
         }
 
-        System.out.println("completedNodes after execution: " + this.failureAgent.getCompletedNodes());
-
         // Check if the agent needs to be terminated
         if (failureAgent.shouldTerminate(DiscoveryClient.getNextID())) {
             return;

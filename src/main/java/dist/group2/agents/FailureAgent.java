@@ -25,7 +25,6 @@ public class FailureAgent implements Runnable, Serializable {
     public FailureAgent(int failingNodeId, int startingNodeId) {
         this.failingNodeId = failingNodeId;
         this.completedNodes = new ArrayList<>();
-        this.completedNodes.add(startingNodeId);
     }
 
     public List<Integer> getCompletedNodes() {
