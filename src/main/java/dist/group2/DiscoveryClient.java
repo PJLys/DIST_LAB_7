@@ -180,6 +180,9 @@ public class DiscoveryClient {
             // Check if there are files which have to change owner to the new node
             ReplicationClient.getInstance().changeOwnerWhenNodeIsAdded();
         }
+        else {
+            System.out.println("Received multicast from itself: " + newNodeIP + " & " + this.IPAddress);
+        }
     }
 
     @ServiceActivator(inputChannel = "DiscoveryUnicast")
