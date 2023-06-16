@@ -4,6 +4,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import dist.group2.agents.AgentController;
 import dist.group2.agents.SyncAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -47,6 +49,8 @@ public class ClientApplication {
 
     @PostConstruct
     public void run() {
+        Logger logger = LoggerFactory.getLogger(ClientApplication.class);
+        logger.info("Run method is executed");
         this.discoveryClient.bootstrap();
         NamingClient.setBaseUrl(this.discoveryClient.getBaseUrl());
         try {
