@@ -30,6 +30,7 @@ public class ClientApplication {
         this.discoveryClient = discoveryClient;
         this.syncAgent = SyncAgent.getAgent();
         this.replicationClient = ReplicationClient.getInstance();
+        agentController = new AgentController();
 
 
         // SHOULD BE REMOVED

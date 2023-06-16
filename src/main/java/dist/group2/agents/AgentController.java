@@ -17,8 +17,8 @@ public class AgentController {
     private final SyncAgent syncAgent;
 
     @Autowired
-    public AgentController(SyncAgent syncAgent) {
-        this.syncAgent = syncAgent;
+    public AgentController() {
+        this.syncAgent = SyncAgent.getAgent();
     }
 
     @PostMapping("/executeFailureAgent")
