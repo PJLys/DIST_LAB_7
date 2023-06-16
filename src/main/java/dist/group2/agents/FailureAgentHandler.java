@@ -34,8 +34,13 @@ public class FailureAgentHandler implements Runnable {
         }
 
         // Execute the REST method on the next node
-        String nextNodeIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
-        System.out.println("Sending failure agent to " + DiscoveryClient.getNextID() + " with IP " + nextNodeIP);
+        int nextNodeID = DiscoveryClient.getNextID();
+        // Skip the failing node
+        if (nextNodeID == this.failureAgent.getFailingNodeId()) {
+            nextNodeID = NamingClient.getIdNextNode(nextNodeID);
+        }
+        String nextNodeIP = NamingClient.getIPAddress(nextNodeID);
+        System.out.println("Sending failure agent to " + DiscoveryClient.getPreviousID() + " with IP " + nextNodeIP);
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", this.failureAgent, Void.class);
     }
