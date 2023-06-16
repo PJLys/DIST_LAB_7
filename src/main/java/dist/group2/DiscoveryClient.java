@@ -135,6 +135,7 @@ public class DiscoveryClient {
     }
 
     private void compareIDs(String RxData) {
+        System.out.println("RxData: " + RxData);
         String newNodeName = RxData.split("\\|")[0];
         String newNodeIP = RxData.split("\\|")[1];
 
@@ -166,7 +167,6 @@ public class DiscoveryClient {
         String RxData = new String(dataPacket.getData(), 0, dataPacket.getLength());
 
         // Check if the message comes from another node
-        String newNodeName = RxData.split("\\|")[0];
         String newNodeIP = RxData.split("\\|")[1];
         if (!Objects.equals(newNodeIP, this.IPAddress)) {
             System.out.println(name + " - Received multicast message from other node: " + RxData);
@@ -179,9 +179,6 @@ public class DiscoveryClient {
 
             // Check if there are files which have to change owner to the new node
             ReplicationClient.getInstance().changeOwnerWhenNodeIsAdded();
-        }
-        else {
-            System.out.println("Received multicast from itself: " + newNodeIP + " & " + this.IPAddress);
         }
     }
 
