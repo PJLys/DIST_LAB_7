@@ -39,7 +39,7 @@ public class FailureAgent implements Runnable, Serializable {
         for (File file : localFiles) {
             // Check if the failing node is the owner of the file
             int ownerID = NamingClient.findFileNodeID(file.getName());
-            if (ownerID == DiscoveryClient.hashValue(String.valueOf(failingNodeId))) {
+            if (ownerID == failingNodeId) {
                 System.out.println("Failing node is owner of file " + file.getName());
                 // Check if the new owner already owns the file. Only send it if it does not own it yet
                 String newOwnerIP = NamingClient.getIPAddressPreviousNode(ownerID);
