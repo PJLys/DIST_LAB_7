@@ -64,9 +64,9 @@ public class AgentController {
             e.printStackTrace();
         }
 
-        System.out.println("Sending failure agent to " + DiscoveryClient.getNextID());
         // Execute the REST method on the next node
         String nextNodeIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
+        System.out.println("Sending failure agent to " + DiscoveryClient.getNextID() + " with IP " + nextNodeIP);
         restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgent, Void.class);
     }
 
