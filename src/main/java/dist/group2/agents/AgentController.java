@@ -44,7 +44,7 @@ public class AgentController {
 
         // Execute the REST method on the next node
         String nextNodeUrl = NamingClient.getIPAddress(DiscoveryClient.getNextID());
-        restTemplate.postForObject(nextNodeUrl + ":8082/agents/executeFailureAgent", failureAgent, Void.class);
+        restTemplate.postForObject("http://" + nextNodeUrl + ":8082/agents/executeFailureAgent", failureAgent, Void.class);
     }
 
     public void startFailureAgent(int failingNodeId, int startingNodeId) {
@@ -62,9 +62,11 @@ public class AgentController {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        System.out.println("Sending failure agent to " + DiscoveryClient.getNextID());
         // Execute the REST method on the next node
         String nextNodeIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
-        restTemplate.postForObject(nextNodeIP + ":8082/agents/executeFailureAgent", failureAgent, Void.class);
+        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgent, Void.class);
     }
 
     @GetMapping("/sync")
