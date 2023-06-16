@@ -85,7 +85,7 @@ public class FailureAgent implements Runnable, Serializable {
      * @return True if it can be stopped, false otherwise
      */
     public Boolean shouldTerminate(int nextNodeId) {
-        return completedNodes.contains(nextNodeId);
+        return this.completedNodes.contains(nextNodeId);
     }
 }
 
