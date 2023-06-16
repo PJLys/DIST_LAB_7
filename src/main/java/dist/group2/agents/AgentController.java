@@ -23,6 +23,7 @@ public class AgentController {
 
     @PostMapping("/executeFailureAgent")
     public void executeFailureAgent(@RequestBody FailureAgent failureAgent) {
+        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
         // Create a new thread from the received agent
         Thread agentThread = new Thread(failureAgent);
 
@@ -47,6 +48,7 @@ public class AgentController {
     }
 
     public void startFailureAgent(int failingNodeId, int startingNodeId) {
+        System.out.println("Starting failure agent with failingNodeId" + failingNodeId + " and startingNodeId" + startingNodeId);
         FailureAgent failureAgent = new FailureAgent(failingNodeId, startingNodeId);
         // Create a new thread for an agent
         Thread agentThread = new Thread(failureAgent);

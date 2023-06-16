@@ -21,6 +21,14 @@ public class FailureAgent implements Runnable, Serializable {
         this.startingNodeId = startingNodeId;
     }
 
+    public int getFailingNodeId() {
+        return failingNodeId;
+    }
+
+    public int getStartingNodeId() {
+        return startingNodeId;
+    }
+
     @Override
     public void run() {
         // Read the file list of the current node
