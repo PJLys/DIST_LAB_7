@@ -31,6 +31,15 @@ public class ClientApplication {
         this.syncAgent = SyncAgent.getAgent();
         this.replicationClient = ReplicationClient.getInstance();
 
+
+        // SHOULD BE REMOVED
+        // FOR TESTING PURPOSES ONLY
+        // TO TEST THE FAILURE AGENT
+        ReplicationClient.setFailed(true);
+
+
+
+
         String name = InetAddress.getLocalHost().getHostName();
         String IPAddress = InetAddress.getLocalHost().getHostAddress();
 

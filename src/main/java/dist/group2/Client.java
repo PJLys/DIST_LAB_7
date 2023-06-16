@@ -2,6 +2,8 @@ package dist.group2;
 
 import dist.group2.agents.SyncAgent;
 import net.minidev.json.JSONObject;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,6 +21,10 @@ public class Client {
     private final SyncAgent syncAgent;
     public Client() {
         this.syncAgent = SyncAgent.getAgent();
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void start() {
         Thread syncThread = new Thread(this.syncAgent);
         syncThread.start();
     }
