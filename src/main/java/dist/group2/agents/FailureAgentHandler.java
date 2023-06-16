@@ -28,6 +28,8 @@ public class FailureAgentHandler implements Runnable {
 
         // Check if the agent needs to be terminated
         if (failureAgent.shouldTerminate(DiscoveryClient.getNextID())) {
+            // The last node deletes the failing node from the database
+            NamingClient.deleteNodeById(this.failureAgent.getFailingNodeId());
             return;
         }
 
