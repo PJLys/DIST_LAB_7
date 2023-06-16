@@ -22,10 +22,10 @@ public class ReplicationClient implements Runnable{
     private static int nodeID;
     private static String IPAddress;
     WatchService file_daemon = FileSystems.getDefault().newWatchService();
-    private static final Path local_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\local_files"));  //Stores the local files that need to be replicated
-    private static final Path replicated_file_path = Path.of(new File("").getAbsolutePath().concat("\\src\\replicated_files"));  //Stores the local files that need to be replicated
+    private static final Path local_file_path = Paths.get("").toAbsolutePath().resolve("src/local_files");  //Stores the local files that need to be replicated
+    private static final Path replicated_file_path = Paths.get("").toAbsolutePath().resolve("src/replicated_files");  //Stores the local files that need to be replicated
 
-    private static final Path log_path = Path.of(new File("").getAbsolutePath().concat("\\src\\log_files"));  //Stores the local files that need to be replicated
+    private static final Path log_path = Paths.get("").toAbsolutePath().resolve("src/log_files");  //Stores the local files that need to be replicated
     private static ReplicationClient client=null;
 
     private ReplicationClient() throws IOException {
@@ -53,6 +53,10 @@ public class ReplicationClient implements Runnable{
 
     public static void setFailed(boolean failed) {
         ReplicationClient.failed = failed;
+    }
+
+    public static boolean isFailed() {
+        return failed;
     }
 
     public void createDirectory(Path path) throws IOException {
@@ -92,7 +96,7 @@ public class ReplicationClient implements Runnable{
     public int event_handler(WatchEvent<?> event) {
         try {
             Path filename = (Path) event.context();
-            String filePath = local_file_path.toString() + '/' + filename;
+            String filePath = local_file_path.resolve(filename).toString();
 
             if (filePath.endsWith(".swp")) {
                 return 0;
@@ -130,7 +134,7 @@ public class ReplicationClient implements Runnable{
 
         assert files != null;
         for (File file : files) {
-            Files.deleteIfExists(Path.of(directory + "/" + file.getName()));
+            Files.deleteIfExists(directory.toPath().resolve(file.getName()));
         }
     }
 
@@ -159,8 +163,8 @@ public class ReplicationClient implements Runnable{
         String str = "Text";
         BufferedWriter writer;
         for (String fileName : fileNames) {
-            System.out.println("Added file: " + local_file_path + "/" + fileName);
-            writer = new BufferedWriter(new FileWriter(local_file_path + "/" + fileName));
+            System.out.println("Adding file: " + local_file_path + "/" + fileName);
+            writer = new BufferedWriter(new FileWriter(local_file_path.resolve(fileName).toFile()));
             writer.write(str);
             writer.flush();
             writer.close();
@@ -177,8 +181,8 @@ public class ReplicationClient implements Runnable{
             System.out.println("Replicating file: " + file.toString());
             if (file.isFile()) {
                 String fileName = file.getName();
-                String filePath = local_file_path.toString() + '/' + fileName;
-                String replicator_loc = NamingClient.findFile(Path.of(filePath).getFileName().toString());
+                String filePath = local_file_path.resolve(fileName).toString();
+                String replicator_loc = NamingClient.findFile(fileName);
                 System.out.println("Send file " + file + " to " + replicator_loc);
                 sendFileToNode( filePath, null, replicator_loc, "ENTRY_CREATE");
             }
@@ -206,8 +210,8 @@ public class ReplicationClient implements Runnable{
                     System.out.println("Change in file owner after new node joined. Send file " + file_name + " to its new owner " + file_owner);
 
                     // Replicate the file to the new owner
-                    String file_path = replicated_file_path.toString() + '/' + file_name;
-                    String log_file_path = log_path.toString() + '/' + file_name + ".log";
+                    String file_path = replicated_file_path.resolve(file_name).toString();
+                    String log_file_path = log_path.resolve(file_name + ".log").toString();
                     sendFileToNode(file_path, log_file_path, file_owner, "ENTRY_CREATE");
 
                     // Delete file on this node
@@ -228,7 +232,7 @@ public class ReplicationClient implements Runnable{
             String previousNodeIP = NamingClient.getIPAddress(previousNodeID);
 
             // If this node is the only one in the network, return from this method
-            if (previousNodeID == this.nodeID) {
+            if (previousNodeID == nodeID) {
                 System.out.println("This node is the only one in the network. No files have to be sent.");
                 return;
             }
@@ -247,7 +251,7 @@ public class ReplicationClient implements Runnable{
             assert localFiles != null;for (File file : localFiles) {
                 // Get info of the file
                 String fileName = file.getName();
-                String filePath = local_file_path.toString() +  '/' + fileName;
+                String filePath = local_file_path.resolve(fileName).toString();
 
                 // The destination is the owner of the file instead of the previous node
                 String destinationIP = NamingClient.findFile(fileName);
@@ -269,7 +273,7 @@ public class ReplicationClient implements Runnable{
                 // Get info of the file
                 String fileName = file.getName();
                 String filePath = replicated_file_path.toString() + '/' + fileName;
-                String logPath = log_path.toString() + '/' + fileName + ".log";
+                String logPath = log_path.resolve(fileName + ".log").toString();
 
                 // Transfer the file and its log to the previous node
                 sendFileToNode(filePath, logPath, previousNodeIP, "ENTRY_SHUTDOWN_REPLICATE");
@@ -316,8 +320,10 @@ public class ReplicationClient implements Runnable{
         // Also include the data of the log file when necessary
         if (logPath == null) {
             jo.put("log_data", "null");
-        } else {
-            jo.put("log_data", Arrays.toString(Files.readAllBytes(Path.of(logPath))));
+        }
+        else {
+            System.out.println("Send log file with it: " + Logger.readLogFileString(logPath));
+            jo.put("log_data", Logger.readLogFileString(logPath));
         }
 
         updateFile(jo, nodeIP);
@@ -334,7 +340,7 @@ public class ReplicationClient implements Runnable{
     }
 
     public static void transmitFileAsJSON(JSONObject json, String nodeIP) {
-        String url = "http://" + nodeIP + ":" + 8082 + "/api/node";
+        String url = "http://" + nodeIP + ":" + 8082 + "/replication/replicateFile";
         RestTemplate restTemplate = new RestTemplate();
 
         Map<String, Object> requestBody = new HashMap<>();
@@ -391,8 +397,8 @@ public class ReplicationClient implements Runnable{
         String file_name = (String) json.get("name");
         String extra_message = (String) json.get("extra_message");
         String data = (String) json.get("data");
-        String file_path = replicated_file_path.toString() + '/' + file_name;
-        String log_file_path = log_path.toString() + '/' + file_name + ".log";
+        String file_path = replicated_file_path.resolve(file_name).toString();
+        String log_file_path = log_path.resolve(file_name + ".log").toString();
 
         System.out.println("Implement update " + extra_message + " of file " + file_name);
 
@@ -400,12 +406,6 @@ public class ReplicationClient implements Runnable{
             // Store the replicated file
             FileOutputStream os_file = new FileOutputStream(file_path);
             os_file.write(data.getBytes());
-            os_file.close();
-
-            // Store the log of the replicated file
-            os_file = new FileOutputStream(log_file_path);
-            String log_data = (String) json.get("log_data");
-            os_file.write(log_data.getBytes());
             os_file.close();
 
             // Edit log: owner has changed
@@ -418,18 +418,21 @@ public class ReplicationClient implements Runnable{
 
             // Check if a log file has been sent
             String log_data = (String) json.get("log_data");
-            if (log_data != null) {
-                // Log file has been sent -> store it and update the owner
-                os_file = new FileOutputStream(log_file_path);
-                os_file.write(log_data.getBytes());
-                os_file.close();
-                Logger.setOwner(log_file_path, nodeID);
-            }
-            else {
+            if (log_data == null || log_data.equals("null")) {
                 // Create a new log file
                 List<Integer> replicators = new ArrayList<>();
-                replicators.add(Client.getNodeIdForIp(senderIP));
+                if (Objects.equals(senderIP, IPAddress)) {
+                    replicators.add(DiscoveryClient.getCurrentID());
+                }
+                else {
+                    replicators.add(Client.getNodeIdForIp(senderIP));
+                }
                 Logger.createLogFile(log_file_path, nodeID, replicators);
+            }
+            else {
+                // Log file has been sent -> store it and update the owner
+                Logger.writeJSONString(log_file_path, log_data);
+                Logger.setOwner(log_file_path, nodeID);
             }
         } else if (Objects.equals(extra_message, "ENTRY_MODIFY")) {
             // Store the replicated file

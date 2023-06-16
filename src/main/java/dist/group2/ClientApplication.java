@@ -1,12 +1,17 @@
 package dist.group2;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import dist.group2.agents.AgentController;
 import dist.group2.agents.SyncAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -14,8 +19,9 @@ import java.net.InetAddress;
 @SpringBootApplication
 public class ClientApplication {
     public static ApplicationContext context;
-    private DiscoveryClient discoveryClient;
-    private SyncAgent syncAgent;
+    private final DiscoveryClient discoveryClient;
+    private final ReplicationClient replicationClient;
+    private final SyncAgent syncAgent;
     private static AgentController agentController;
     Thread replicationthread;
 
@@ -23,6 +29,8 @@ public class ClientApplication {
     public ClientApplication(DiscoveryClient discoveryClient) throws IOException {
         this.discoveryClient = discoveryClient;
         this.syncAgent = SyncAgent.getAgent();
+        this.replicationClient = ReplicationClient.getInstance();
+        agentController = new AgentController();
 
         String name = InetAddress.getLocalHost().getHostName();
         String IPAddress = InetAddress.getLocalHost().getHostAddress();
@@ -36,28 +44,39 @@ public class ClientApplication {
 
         Communicator.init(multicastGroup, multicastPort, fileUnicastPort, multicastIP, unicastPortDiscovery);
         this.discoveryClient.init(name, IPAddress, unicastPortDiscovery, namingPort);
-        ReplicationClient replicationClient = ReplicationClient.getInstance();
-        ReplicationController replicationController = new ReplicationController(replicationClient);
+        NamingClient.setName(name);
 
         System.out.println("<---> " + name + " Instantiated with IP " + IPAddress + " <--->");
-        replicationClient.addFiles();
-        discoveryClient.bootstrap();
-        NamingClient.setBaseUrl(discoveryClient.getBaseUrl());
-        NamingClient.setName(name);
-        replicationClient.replicateFiles();
 
-        replicationClient.createDirectories();
-        replicationClient.addFiles();
-        replicationClient.setFileDirectoryWatchDog();
-        replicationClient.replicateFiles();
+    }
 
+    @EventListener(ApplicationReadyEvent.class)
+    public void run() {
+        Logger logger = LoggerFactory.getLogger(ClientApplication.class);
+        logger.info("Run method is executed");
+        this.discoveryClient.bootstrap();
+        NamingClient.setBaseUrl(this.discoveryClient.getBaseUrl());
+        try {
+            this.replicationClient.createDirectories();
+            this.replicationClient.addFiles();
+            this.replicationClient.setFileDirectoryWatchDog();
+            this.replicationClient.replicateFiles();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
         replicationthread = new Thread(replicationClient);
         replicationthread.start();
     }
-
     @PreDestroy
     public void shutdown() {
         replicationthread.stop();
+        try {
+            Thread.sleep(2000);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 

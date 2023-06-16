@@ -84,12 +84,13 @@ public class SyncAgent implements Runnable, Serializable {
         RestTemplate template = new RestTemplate();
         // SEND HTTP REQUEST
         ResponseEntity<JSONArray> response = template.exchange(nextIP+"/sync", HttpMethod.GET, null, JSONArray.class);
+        System.out.println("Response sync client status code: response.getStatusCode()");
         JSONArray jsarr = response.getBody();
 
         if (jsarr==null) {
             return;
         }
-        //Update local network list
+        // Update local network list
         for (Object obj : jsarr) {
             if (!(obj instanceof JSONObject jsobj))
                 continue;

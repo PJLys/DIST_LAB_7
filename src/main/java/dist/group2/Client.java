@@ -2,6 +2,8 @@ package dist.group2;
 
 import dist.group2.agents.SyncAgent;
 import net.minidev.json.JSONObject;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -15,12 +17,15 @@ import java.util.*;
 
 @Service
 public class Client {
-    private static final Path owned_files = Path.of(new File("").getAbsolutePath().concat("\\src\\replicated_files"));
+    private static final Path owned_files = Path.of("" ,"src", "replicatd_files");
     private final SyncAgent syncAgent;
     public Client() {
-        SyncAgent syncAgent = SyncAgent.getAgent();
-        Thread syncThread = new Thread(syncAgent);
-        this.syncAgent = syncAgent;
+        this.syncAgent = SyncAgent.getAgent();
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void startSyncAgent() {
+        Thread syncThread = new Thread(this.syncAgent);
         syncThread.start();
     }
 
@@ -68,7 +73,7 @@ public class Client {
         RestTemplate restTemplate = new RestTemplate();
 
         // Determine the request URL based on the IP address and filename
-        String requestUrl = "http://" + ipaddr + "/" + filename + "/" + (method ? "w" : "r");
+        String requestUrl = "http://" + ipaddr + ":" + 8082 + "/" + filename + "/" + (method ? "w" : "r");
 
         try {
             // Send the HTTP request
@@ -129,7 +134,7 @@ public class Client {
      * @return the ID of the node
      */
     public static int getNodeIdForIp(String nodeIP) {
-        String url = nodeIP + "/client/nodeID";
+        String url = "http://" + nodeIP + ":" + 8082 + "/client/nodeID";
         try {
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
@@ -137,6 +142,7 @@ public class Client {
             System.out.println("Node with IP " + nodeIP + " has ID " + nodeID);
             return nodeID;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Failed to find ID of node with IP " + nodeIP);
         }
     }
@@ -152,7 +158,7 @@ public class Client {
         RestTemplate restTemplate = new RestTemplate();
 
         // Determine the request URL based on the IP address and filename
-        String requestUrl = "http://" + nodeIP + "/client/" + fileName + "/owner";
+        String requestUrl = "http://" + nodeIP + ":" + 8082 + "/client/" + fileName + "/owner";
 
         try {
             // Send the HTTP request

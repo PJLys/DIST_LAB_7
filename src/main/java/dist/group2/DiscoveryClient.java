@@ -3,14 +3,12 @@ package dist.group2;
 import jakarta.annotation.PreDestroy;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
-import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Objects;
 
 @Service
 public class DiscoveryClient {
@@ -22,17 +20,6 @@ public class DiscoveryClient {
     private int namingPort;
     private int unicastPort;
     private String baseUrl;
-
-    public void init(String name, String IPAddress, int unicastPort, int namingPort) {
-        this.name = name;
-        this.IPAddress = IPAddress;
-        this.baseUrl = null;
-        this.namingPort = namingPort;
-        this.unicastPort = unicastPort;
-        currentID = hashValue(name);
-        previousID = currentID;    // Set previousID to its own ID
-        nextID = currentID;        // Set nextID to its own ID
-    }
 
     public static int getCurrentID() {
         return currentID;
@@ -46,9 +33,19 @@ public class DiscoveryClient {
         return nextID;
     }
 
-
     public static Integer hashValue(String name) {
         return Math.abs(name.hashCode()) % 32769;
+    }
+
+    public void init(String name, String IPAddress, int unicastPort, int namingPort) {
+        DiscoveryClient.name = name;
+        this.IPAddress = IPAddress;
+        this.baseUrl = null;
+        this.namingPort = namingPort;
+        this.unicastPort = unicastPort;
+        currentID = hashValue(name);
+        previousID = currentID;    // Set previousID to its own ID
+        nextID = currentID;        // Set nextID to its own ID
     }
 
     public String getBaseUrl() {
@@ -62,8 +59,7 @@ public class DiscoveryClient {
         System.out.println("<---> " + name + " Discovery Multicast Sending <--->");
         try {
             Communicator.sendMulticast(data);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("Failed to send multicast");
             ClientApplication.failure();
         }
@@ -74,8 +70,7 @@ public class DiscoveryClient {
         String rxData = null;
         try {
             rxData = Communicator.receiveUnicast(receiveUnicastPort);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.out.println(Arrays.toString(e.getStackTrace()));
             ClientApplication.failure();
         }
@@ -95,10 +90,10 @@ public class DiscoveryClient {
 
     @PreDestroy
     private void shutdown() {
-        System.out.println("<---> " + this.name + " Shutdown <--->");
+        System.out.println("<---> " + name + " Shutdown <--->");
 
         // Set the nextID value of the previous node to nextID of this node
-        if (previousID != hashValue(this.name)) {
+        if (previousID != hashValue(name)) {
             System.out.println("Sending nextID to the previous node");
             String messageToPrev = nextID + "|" + "nextID";
             String previousIP = NamingClient.getIPAddress(previousID);
@@ -140,39 +135,48 @@ public class DiscoveryClient {
         int newNodeID = hashValue(newNodeName);
         int currentID = hashValue(name);
 
-        if (currentID == nextID) {    // Test if this node is alone -> change previous and next ID to the new node
+        if (newNodeID == previousID || newNodeID == nextID || newNodeID == currentID) {    // Duplicate node -> don't add to ring structure
+            System.out.println("<---> New node tried to enter the network with the hash " + newNodeID + " which is already in use <--->");
+        } else if (currentID == nextID) {    // Test if this node is alone -> change previous and next ID to the new node
             previousID = newNodeID;
             nextID = newNodeID;
             System.out.println("<---> connected to first other node - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
             respondToMulticast(newNodeIP, currentID, "bothIDs");
-        } else if (previousID < newNodeID && newNodeID <= currentID) {    // Test if this node should become the previousID of the new node
+        } else if (((newNodeID <= currentID) && ((previousID < newNodeID) || (previousID > currentID))) || ((currentID < previousID) & ((newNodeID < currentID) | (newNodeID > previousID)))) {    // Test if this node should become the previousID of the new node
             previousID = newNodeID;
             System.out.println("<---> previousID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
             respondToMulticast(newNodeIP, currentID, "nextID");
-        } else if (currentID <= newNodeID && newNodeID <= nextID) {    // Test if the new node should become the nextID of the new node
+        } else if ((currentID <= newNodeID && ((newNodeID <= nextID) || (nextID < currentID))) || ((currentID > newNodeID) && ((newNodeID > currentID) || (newNodeID < nextID)))) {    // Test if the new node should become the nextID of the new node
             nextID = newNodeID;
             System.out.println("<---> nextID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
             sleep(300);    // Wait so the responses don't collide
             respondToMulticast(newNodeIP, currentID, "previousID");
+        } else {
+            System.out.println("<---> No match found: currentID: " + currentID + " previousID: " + previousID + " nextID: " + nextID + " newID: " + newNodeID);
         }
     }
 
     @ServiceActivator(inputChannel = "Multicast")
-    private void multicastEvent(Message<byte[]> message) throws IOException, InterruptedException {
+    private void multicastEvent(Message<byte[]> message) throws IOException {
         byte[] payload = message.getPayload();
         DatagramPacket dataPacket = new DatagramPacket(payload, payload.length);
 
         String RxData = new String(dataPacket.getData(), 0, dataPacket.getLength());
-        System.out.println(name + " - Received multicast message from other node: " + RxData);
 
-        // Wait so the new node has time to start up and the unicast answers follow the answer of the naming server
-        sleep(1300);
+        // Check if the message comes from another node
+        String newNodeIP = RxData.split("\\|")[1];
+        if (!Objects.equals(newNodeIP, this.IPAddress)) {
+            System.out.println(name + " - Received multicast message from other node: " + RxData);
 
-        // Use this multicast data to update your previous & next node IDs
-        compareIDs(RxData);
+            // Wait so the new node has time to start up and the unicast answers follow the answer of the naming server
+            sleep(1300);
 
-        // Check if there are files which have to change owner to the new node
-        ReplicationClient.getInstance().changeOwnerWhenNodeIsAdded();
+            // Use this multicast data to update your previous & next node IDs
+            compareIDs(RxData);
+
+            // Check if there are files which have to change owner to the new node
+            ReplicationClient.getInstance().changeOwnerWhenNodeIsAdded();
+        }
     }
 
     @ServiceActivator(inputChannel = "DiscoveryUnicast")
@@ -200,7 +204,7 @@ public class DiscoveryClient {
                 System.out.println("<---> nextID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
             }
             default -> {
-                System.out.println("<" + this.name + "> - ERROR - Unicast received 2nd parameter other than 'previousID' or 'nextID'");
+                System.out.println("<" + name + "> - ERROR - Unicast received 2nd parameter other than 'previousID' or 'nextID'");
                 ClientApplication.failure();
             }
         }
