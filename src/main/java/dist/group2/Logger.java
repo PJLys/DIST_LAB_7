@@ -38,7 +38,6 @@ public class Logger {
         logData.put("owner", owner);
         logData.put("replicators", replicatorsArray);
         writeJSONObject(filePath, logData);
-        System.out.println("Log file " + filePath + " created");
     }
 
     private static void writeJSONObject(String filePath, JSONObject jsonObject) {
@@ -75,7 +74,6 @@ public class Logger {
     public static String readLogFileString(String filePath) {
         try {
             String json = Files.readString(Paths.get(filePath));
-            System.out.println("Read log file " + filePath + ":" + json);
             return json;
         } catch (IOException e) {
             System.out.println("Failed to read log file " + filePath);
@@ -111,7 +109,6 @@ public class Logger {
     public static void setOwner(String filePath, int newOwner) {
         System.out.println("Reading log file " + filePath);
         JSONObject jsonObject = readLogFile(filePath);
-        System.out.println("Log file " + filePath + ": " + jsonObject.toJSONString());
         jsonObject.put("owner", newOwner);
         System.out.println("Set " + newOwner + " as owner in log file " + filePath);
         writeJSONObject(filePath, jsonObject);
