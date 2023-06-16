@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -23,7 +24,7 @@ public class FailureAgent implements Runnable, Serializable {
 
     public FailureAgent(int failingNodeId, int startingNodeId) {
         this.failingNodeId = failingNodeId;
-        this.completedNodes = new ArrayList<>();
+        this.completedNodes = new LinkedList<>();
         this.completedNodes.add(startingNodeId);
     }
 
