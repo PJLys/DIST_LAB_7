@@ -19,7 +19,7 @@ public class FailureAgent implements Runnable, Serializable {
     /**
      * List used to store all nodes that have been passed. It is used to check whether it passed all nodes in the ring
      */
-    private final List<Integer> completedNodes;
+    private List<Integer> completedNodes;
 
     public FailureAgent(int failingNodeId, int startingNodeId) {
         this.failingNodeId = failingNodeId;
@@ -76,7 +76,9 @@ public class FailureAgent implements Runnable, Serializable {
             }
         }
         // Add its own ID to the completedNodes
+        System.out.println("completedNodes before appending: " + this.completedNodes);
         this.completedNodes.add(DiscoveryClient.getCurrentID());
+        System.out.println("completedNodes after appending: " + this.completedNodes);
     }
 
     /**
