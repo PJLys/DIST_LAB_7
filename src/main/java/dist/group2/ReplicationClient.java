@@ -343,7 +343,6 @@ public class ReplicationClient implements Runnable{
         requestBody.put("name", json.get("name"));
         requestBody.put("extra_message", json.get("extra_message"));
         requestBody.put("data", json.get("data"));
-        System.out.println("Putting log_data: " + json.get("log_data"));
         requestBody.put("log_data", json.get("log_data"));
 
         // Specify media type

@@ -50,6 +50,7 @@ public class Logger {
             System.out.println("Writing log file " + filePath + ":" + jsonString);
             fileWriter.write(jsonString);
             fileWriter.close();
+            System.out.println("Reading after writing: " + readLogFileString(filePath));
         } catch (IOException e) {
             System.out.println("Error while writing log file " + filePath);
             e.printStackTrace();
