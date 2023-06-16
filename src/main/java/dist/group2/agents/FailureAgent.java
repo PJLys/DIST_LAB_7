@@ -42,7 +42,7 @@ public class FailureAgent implements Runnable, Serializable {
             if (ownerID == failingNodeId) {
                 System.out.println("Failing node is owner of file " + file.getName());
                 // Check if the new owner already owns the file. Only send it if it does not own it yet
-                String newOwnerIP = NamingClient.getIPAddressPreviousNode(ownerID);
+                String newOwnerIP = NamingClient.getIPAddress(NamingClient.getIdPreviousNode(ownerID));
                 if (Client.checkIfOwner(newOwnerIP, file.getName())) {
                     // Add the current node to the replicated files
                     RestTemplate restTemplate = new RestTemplate();

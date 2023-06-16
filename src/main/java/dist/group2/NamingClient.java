@@ -3,10 +3,8 @@ package dist.group2;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,18 +88,19 @@ public class NamingClient {
     }
 
     /**
-     * Use in failure, ask the previous node IP of the specified nodeID
+     * Use in failure, ask the nodeID of the previous node of the specified nodeID
+     *
      * @param nodeID ID from the specific node
      * @return previous node id (if id = current); current node id (if id = next)
      */
-    public static String getIPAddressPreviousNode(int nodeID) {
+    public static int getIdPreviousNode(int nodeID) {
         String url = baseUrl + "/nodes/" + nodeID + "/previousNode";
         try {
-            String IPAddress = restTemplate.getForObject(url, String.class);
-            System.out.println("<" + name + "> - Previous node of node with ID " + nodeID + " has IPAddress " + IPAddress);
-            return IPAddress;
+            int previousNodeIdD = restTemplate.getForObject(url, Integer.class);
+            System.out.println("<" + name + "> - Previous node of node with ID " + nodeID + " has ID " + previousNodeIdD);
+            return previousNodeIdD;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to find IPAddress of previous node of node with ID " + nodeID);
+            throw new RuntimeException("Failed to find ID of previous node of node with ID " + nodeID);
         }
     }
 }
