@@ -84,7 +84,7 @@ public class ClientApplication {
             failure();
         }
         try {
-            Thread.sleep(10000);
+            Thread.sleep(2000);
         }
         catch (Exception e) {
             e.printStackTrace();
