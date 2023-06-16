@@ -135,7 +135,6 @@ public class DiscoveryClient {
     }
 
     private void compareIDs(String RxData) {
-        System.out.println("RxData: " + RxData);
         String newNodeName = RxData.split("\\|")[0];
         String newNodeIP = RxData.split("\\|")[1];
 
@@ -156,6 +155,9 @@ public class DiscoveryClient {
             System.out.println("<---> nextID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
             sleep(300);    // Wait so the responses don't collide
             respondToMulticast(newNodeIP, currentID, "previousID");
+        }
+        else {
+            System.out.println("<---> No match found: currentID: " + currentID + " previousID: " + previousID + " nextID: " + nextID + " newID: " + newNodeID);
         }
     }
 
