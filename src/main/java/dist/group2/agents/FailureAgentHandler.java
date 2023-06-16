@@ -26,6 +26,8 @@ public class FailureAgentHandler implements Runnable {
             e.printStackTrace();
         }
 
+        System.out.println("completedNodes after execution: " + this.failureAgent.getCompletedNodes());
+
         // Check if the agent needs to be terminated
         if (failureAgent.shouldTerminate(DiscoveryClient.getNextID())) {
             return;
@@ -35,6 +37,6 @@ public class FailureAgentHandler implements Runnable {
         String nextNodeIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         System.out.println("Sending failure agent to " + DiscoveryClient.getNextID() + " with IP " + nextNodeIP);
         RestTemplate restTemplate = new RestTemplate();
-        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgent, Void.class);
+        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", this.failureAgent, Void.class);
     }
 }
