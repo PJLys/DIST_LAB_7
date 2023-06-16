@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 
@@ -20,7 +19,7 @@ public class FailureAgent implements Runnable, Serializable {
     /**
      * List used to store all nodes that have been passed. It is used to check whether it passed all nodes in the ring
      */
-    private List<Integer> completedNodes;
+    private final List<Integer> completedNodes;
 
     public FailureAgent(int failingNodeId, int startingNodeId) {
         this.failingNodeId = failingNodeId;
@@ -69,10 +68,8 @@ public class FailureAgent implements Runnable, Serializable {
                             e.printStackTrace();
                         }
                     } else {
-                        // Send the file and its log
-                        String logPath = ReplicationClient.getLogFilePath().resolve(file.getName() + ".log").toString();
                         try {
-                            ReplicationClient.sendFileToNode(file.getAbsolutePath(), logPath, newOwnerIP, "ENTRY_CREATE");
+                            ReplicationClient.sendFileToNode(file.getAbsolutePath(), null, newOwnerIP, "ENTRY_CREATE");
                         } catch (IOException e) {
                             System.out.println("Error occurred while sending file" + file.getName() + " to " + newOwnerIP + " by failure agent");
                             e.printStackTrace();
