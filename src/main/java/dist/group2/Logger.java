@@ -3,15 +3,13 @@ package dist.group2;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
-import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
-import org.aspectj.apache.bcel.classfile.ClassParser;
 
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Logger {
@@ -24,7 +22,7 @@ public class Logger {
         JSONObject jsonObject = readLogFile(filePath);
         JSONArray replicatorsArray = (JSONArray) jsonObject.get("replicators");
         List<Integer> replicatorsList = new ArrayList<>();
-        for (Object replicator: replicatorsArray) {
+        for (Object replicator : replicatorsArray) {
             replicatorsList.add((int) replicator);
         }
         return replicatorsList;
@@ -46,7 +44,6 @@ public class Logger {
 
     public static void writeJSONString(String filePath, String jsonString) {
         try (FileWriter fileWriter = new FileWriter(filePath)) {
-            System.out.println("Writing log file " + filePath + ":" + jsonString);
             fileWriter.write(jsonString);
             fileWriter.close();
         } catch (IOException e) {
@@ -64,8 +61,7 @@ public class Logger {
             }
         } catch (ParseException e) {
             System.out.println("Failed to parse log file " + filePath);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return new JSONObject();
@@ -73,8 +69,7 @@ public class Logger {
 
     public static String readLogFileString(String filePath) {
         try {
-            String json = Files.readString(Paths.get(filePath));
-            return json;
+            return Files.readString(Paths.get(filePath));
         } catch (IOException e) {
             System.out.println("Failed to read log file " + filePath);
         }
@@ -99,15 +94,13 @@ public class Logger {
         boolean success = (boolean) replicators.remove(replicator);
         if (success) {
             System.out.println("Successfully removed " + replicator + " from log file " + filePath);
-        }
-        else {
+        } else {
             System.out.println(replicator + " not found in log file " + filePath);
         }
         writeJSONObject(filePath, jsonObject);
     }
 
     public static void setOwner(String filePath, int newOwner) {
-        System.out.println("Reading log file " + filePath);
         JSONObject jsonObject = readLogFile(filePath);
         jsonObject.put("owner", newOwner);
         System.out.println("Set " + newOwner + " as owner in log file " + filePath);
