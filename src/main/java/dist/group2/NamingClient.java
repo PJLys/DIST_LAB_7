@@ -47,6 +47,12 @@ public class NamingClient {
         System.out.println("<" + name + "> - Deleted node with name " + nodeName);
     }
 
+    public static void deleteNodeById(String nodeId) {
+        String url = baseUrl + "/nodes/ID/" + nodeId;
+        restTemplate.delete(url);
+        System.out.println("<" + name + "> - Deleted node with ID " + nodeId);
+    }
+
 
     public static String findFile(String fileName) {
         String url = baseUrl + "/files/" + fileName;
