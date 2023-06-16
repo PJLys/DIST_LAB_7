@@ -109,4 +109,21 @@ public class NamingClient {
             throw new RuntimeException("Failed to find ID of previous node of node with ID " + nodeID);
         }
     }
+
+    /**
+     * Use in failure, ask the nodeID of the next node of the specified nodeID
+     *
+     * @param nodeID ID from the specific node
+     * @return previous node id (if id = current); current node id (if id = next)
+     */
+    public static int getIdNextNode(int nodeID) {
+        String url = baseUrl + "/nodes/" + nodeID + "/nextNode";
+        try {
+            int previousNodeIdD = restTemplate.getForObject(url, Integer.class);
+            System.out.println("<" + name + "> - Next node of node with ID " + nodeID + " has ID " + previousNodeIdD);
+            return previousNodeIdD;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find ID of next node of node with ID " + nodeID);
+        }
+    }
 }
