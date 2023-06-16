@@ -19,9 +19,9 @@ import java.net.InetAddress;
 @SpringBootApplication
 public class ClientApplication {
     public static ApplicationContext context;
-    private DiscoveryClient discoveryClient;
-    private ReplicationClient replicationClient;
-    private SyncAgent syncAgent;
+    private final DiscoveryClient discoveryClient;
+    private final ReplicationClient replicationClient;
+    private final SyncAgent syncAgent;
     private static AgentController agentController;
     Thread replicationthread;
 
@@ -31,15 +31,6 @@ public class ClientApplication {
         this.syncAgent = SyncAgent.getAgent();
         this.replicationClient = ReplicationClient.getInstance();
         agentController = new AgentController();
-
-
-        // SHOULD BE REMOVED
-        // FOR TESTING PURPOSES ONLY
-        // TO TEST THE FAILURE AGENT
-        ReplicationClient.setFailed(true);
-
-
-
 
         String name = InetAddress.getLocalHost().getHostName();
         String IPAddress = InetAddress.getLocalHost().getHostAddress();
@@ -80,9 +71,6 @@ public class ClientApplication {
     @PreDestroy
     public void shutdown() {
         replicationthread.stop();
-        if (ReplicationClient.isFailed()) {
-            failure();
-        }
         try {
             Thread.sleep(2000);
         }

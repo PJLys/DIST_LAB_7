@@ -232,7 +232,7 @@ public class ReplicationClient implements Runnable{
             String previousNodeIP = NamingClient.getIPAddress(previousNodeID);
 
             // If this node is the only one in the network, return from this method
-            if (previousNodeID == this.nodeID) {
+            if (previousNodeID == nodeID) {
                 System.out.println("This node is the only one in the network. No files have to be sent.");
                 return;
             }
