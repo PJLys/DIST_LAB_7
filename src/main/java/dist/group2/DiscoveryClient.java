@@ -142,11 +142,11 @@ public class DiscoveryClient {
             nextID = newNodeID;
             System.out.println("<---> connected to first other node - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
             respondToMulticast(newNodeIP, currentID, "bothIDs");
-        } else if ((previousID < newNodeID && newNodeID <= currentID) || ((currentID < previousID) & ((newNodeID < currentID) | (newNodeID > previousID)))) {    // Test if this node should become the previousID of the new node
+        } else if (((newNodeID <= currentID) && ((previousID < newNodeID) || (previousID > currentID))) || ((currentID < previousID) & ((newNodeID < currentID) | (newNodeID > previousID)))) {    // Test if this node should become the previousID of the new node
             previousID = newNodeID;
             System.out.println("<---> previousID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
             respondToMulticast(newNodeIP, currentID, "nextID");
-        } else if ((currentID <= newNodeID && newNodeID <= nextID) || ((currentID > newNodeID) & ((newNodeID > currentID) || (newNodeID < nextID)))) {    // Test if the new node should become the nextID of the new node
+        } else if ((currentID <= newNodeID && ((newNodeID <= nextID) || (nextID < currentID))) || ((currentID > newNodeID) && ((newNodeID > currentID) || (newNodeID < nextID)))) {    // Test if the new node should become the nextID of the new node
             nextID = newNodeID;
             System.out.println("<---> nextID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
             sleep(300);    // Wait so the responses don't collide
