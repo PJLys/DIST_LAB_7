@@ -55,6 +55,10 @@ public class ReplicationClient implements Runnable{
         ReplicationClient.failed = failed;
     }
 
+    public static boolean isFailed() {
+        return failed;
+    }
+
     public void createDirectory(Path path) throws IOException {
         File directory = new File(path.toString());
 
