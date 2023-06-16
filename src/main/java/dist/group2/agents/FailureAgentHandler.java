@@ -2,7 +2,6 @@ package dist.group2.agents;
 
 import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 
 public class FailureAgentHandler implements Runnable {
@@ -28,7 +27,7 @@ public class FailureAgentHandler implements Runnable {
         }
 
         // Check if the agent needs to be terminated
-        if (failureAgent.shouldTerminate()) {
+        if (failureAgent.shouldTerminate(DiscoveryClient.getNextID())) {
             return;
         }
 

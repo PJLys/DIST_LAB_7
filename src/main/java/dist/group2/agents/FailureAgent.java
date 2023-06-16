@@ -9,16 +9,22 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class FailureAgent implements Runnable, Serializable {
 
     private final int failingNodeId;
-    private final int startingNodeId;
+    /**
+     * List used to store all nodes that have been passed. It is used to check whether it passed all nodes in the ring
+     */
+    private final List<Integer> completedNodes;
 
     public FailureAgent(int failingNodeId, int startingNodeId) {
         this.failingNodeId = failingNodeId;
-        this.startingNodeId = startingNodeId;
+        this.completedNodes = new ArrayList<>();
+        this.completedNodes.add(startingNodeId);
     }
 
     public int getFailingNodeId() {
@@ -26,7 +32,7 @@ public class FailureAgent implements Runnable, Serializable {
     }
 
     public int getStartingNodeId() {
-        return startingNodeId;
+        return completedNodes.get(0);
     }
 
     @Override
@@ -69,10 +75,17 @@ public class FailureAgent implements Runnable, Serializable {
                 }
             }
         }
+        // Add its own ID to the completedNodes
+        this.completedNodes.add(DiscoveryClient.getCurrentID());
     }
 
-    public Boolean shouldTerminate() {
-        return (DiscoveryClient.getCurrentID() == startingNodeId);
+    /**
+     * If the failure agent has been executed by all nodes in the ring, it can be safely terminated.
+     * @param nextNodeId The ID of the next node in the topology
+     * @return True if it can be stopped, false otherwise
+     */
+    public Boolean shouldTerminate(int nextNodeId) {
+        return completedNodes.contains(nextNodeId);
     }
 }
 
