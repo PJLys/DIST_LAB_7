@@ -418,7 +418,7 @@ public class ReplicationClient implements Runnable{
 
             // Check if a log file has been sent
             String log_data = (String) json.get("log_data");
-            if (log_data == null) {
+            if (log_data == null || log_data.equals("null")) {
                 // Create a new log file
                 List<Integer> replicators = new ArrayList<>();
                 if (Objects.equals(senderIP, IPAddress)) {
