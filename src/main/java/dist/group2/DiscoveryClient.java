@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Objects;
 
 @Service
 public class DiscoveryClient {
@@ -163,16 +164,22 @@ public class DiscoveryClient {
         DatagramPacket dataPacket = new DatagramPacket(payload, payload.length);
 
         String RxData = new String(dataPacket.getData(), 0, dataPacket.getLength());
-        System.out.println(name + " - Received multicast message from other node: " + RxData);
 
-        // Wait so the new node has time to start up and the unicast answers follow the answer of the naming server
-        sleep(1300);
+        // Check if the message comes from another node
+        String newNodeName = RxData.split("\\|")[0];
+        String newNodeIP = RxData.split("\\|")[1];
+        if (!Objects.equals(newNodeIP, this.IPAddress)) {
+            System.out.println(name + " - Received multicast message from other node: " + RxData);
 
-        // Use this multicast data to update your previous & next node IDs
-        compareIDs(RxData);
+            // Wait so the new node has time to start up and the unicast answers follow the answer of the naming server
+            sleep(1300);
 
-        // Check if there are files which have to change owner to the new node
-        ReplicationClient.getInstance().changeOwnerWhenNodeIsAdded();
+            // Use this multicast data to update your previous & next node IDs
+            compareIDs(RxData);
+
+            // Check if there are files which have to change owner to the new node
+            ReplicationClient.getInstance().changeOwnerWhenNodeIsAdded();
+        }
     }
 
     @ServiceActivator(inputChannel = "DiscoveryUnicast")
