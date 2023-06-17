@@ -399,7 +399,7 @@ public class ReplicationClient implements Runnable{
     public static void implementUpdate(JSONObject json, String senderIP) throws IOException {
         String file_name = (String) json.get("name");
         String extra_message = (String) json.get("extra_message");
-        String data = (String) json.get("data");
+        byte[] data = (byte[]) json.get("data");
         String file_path = replicated_file_path.resolve(file_name).toString();
         String log_file_path = log_path.resolve(file_name + ".log").toString();
 
@@ -408,7 +408,7 @@ public class ReplicationClient implements Runnable{
         if (Objects.equals(extra_message, "ENTRY_SHUTDOWN_REPLICATE")) {
             // Store the replicated file
             FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(data.getBytes());
+            os_file.write(data);
             os_file.close();
 
             // Edit log: owner has changed
@@ -416,7 +416,7 @@ public class ReplicationClient implements Runnable{
         } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
             // Store the replicated file
             FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(data.getBytes());
+            os_file.write(data);
             os_file.close();
 
             // Check if a log file has been sent
@@ -440,7 +440,7 @@ public class ReplicationClient implements Runnable{
         } else if (Objects.equals(extra_message, "ENTRY_MODIFY")) {
             // Store the replicated file
             FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(data.getBytes());
+            os_file.write(data);
             os_file.close();
         } else if (Objects.equals(extra_message, "ENTRY_DELETE")) {
             Files.deleteIfExists(Path.of(file_path));
