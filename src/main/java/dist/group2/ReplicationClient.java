@@ -407,8 +407,9 @@ public class ReplicationClient implements Runnable{
 
         if (Objects.equals(extra_message, "ENTRY_SHUTDOWN_REPLICATE")) {
             // Store the replicated file
+            byte[] byteArray = Base64.getDecoder().decode(data);
             FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(data.getBytes());
+            os_file.write(byteArray);
             os_file.close();
 
             // Edit log: owner has changed
