@@ -30,23 +30,8 @@ public class AgentController {
     public void startFailureAgent(int failingNodeId, int startingNodeId) {
         System.out.println("Starting failure agent with failingNodeId" + failingNodeId + " and startingNodeId" + startingNodeId);
         FailureAgent failureAgent = new FailureAgent(failingNodeId, startingNodeId);
-        // Create a new thread for an agent
-        Thread agentThread = new Thread(failureAgent);
-
-        // Start the thread
-        agentThread.start();
-
-        // Wait for the thread to finish
-        try {
-            agentThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // Execute the REST method on the next node
-        String nextNodeIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
-        System.out.println("Sending failure agent to " + DiscoveryClient.getNextID() + " with IP " + nextNodeIP);
-        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgent, Void.class);
+        // Create a new thread for a FailureAgentHandler
+        new Thread(new FailureAgentHandler(failureAgent)).start();
     }
 
     @GetMapping("/sync")
