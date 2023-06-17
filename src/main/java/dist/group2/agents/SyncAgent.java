@@ -45,7 +45,10 @@ public class SyncAgent implements Runnable, Serializable {
      */
     @Override
     public void run() {
-        this.updateNetworkFileStatus();
+        // Only run if it is not the only node in the system
+        if (DiscoveryClient.getCurrentID() != DiscoveryClient.getNextID()) {
+            this.updateNetworkFileStatus();
+        }
         Thread.yield();
     }
 
@@ -82,7 +85,6 @@ public class SyncAgent implements Runnable, Serializable {
         // CREATE REQUEST
         String nextIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         RestTemplate template = new RestTemplate();
-        System.out.println("URI " + nextIP+"/sync");
         // SEND HTTP REQUEST
         ResponseEntity<JSONArray> response = template.exchange(nextIP+"/sync", HttpMethod.GET, null, JSONArray.class);
         System.out.println("Response sync client status code:" + response.getStatusCode());
