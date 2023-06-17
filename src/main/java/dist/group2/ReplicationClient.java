@@ -94,7 +94,6 @@ public class ReplicationClient implements Runnable{
      * @return error code
      */
     public int event_handler(WatchEvent<?> event) {
-        System.out.println("Event happended: event = " + event.kind() + ", path = " + event.context());
         try {
             Path filename = (Path) event.context();
             String filePath = local_file_path.resolve(filename).toString();
