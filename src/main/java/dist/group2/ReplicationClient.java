@@ -445,8 +445,11 @@ public class ReplicationClient implements Runnable{
             }
         } else if (Objects.equals(extra_message, "ENTRY_MODIFY")) {
             // Store the replicated file
+            System.out.println("Received, data: " + data);
+            byte[] byteArray = Base64.getDecoder().decode(data);
+            System.out.println("Bytearray" + Arrays.toString(byteArray));
             FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(data.getBytes());
+            os_file.write(byteArray);
             os_file.close();
         } else if (Objects.equals(extra_message, "ENTRY_DELETE")) {
             Files.deleteIfExists(Path.of(file_path));
