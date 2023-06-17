@@ -83,8 +83,8 @@ public class SyncAgent implements Runnable, Serializable {
         String nextIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         RestTemplate template = new RestTemplate();
         // SEND HTTP REQUEST
-        ResponseEntity<JSONArray> response = template.exchange(nextIP+"/sync:8082", HttpMethod.GET, null, JSONArray.class);
-        System.out.println("Response sync client status code: response.getStatusCode()");
+        ResponseEntity<JSONArray> response = template.exchange(nextIP+"/sync", HttpMethod.GET, null, JSONArray.class);
+        System.out.println("Response sync client status code:" + response.getStatusCode());
         JSONArray jsarr = response.getBody();
 
         if (jsarr==null) {
