@@ -46,8 +46,9 @@ public class SyncAgent implements Runnable, Serializable {
     @Override
     public void run() {
         // Only run if it is not the only node in the system
+        System.out.println("CurrentID " + DiscoveryClient.getCurrentID() + "    NextID: " + DiscoveryClient.getNextID());
         if (DiscoveryClient.getCurrentID() != DiscoveryClient.getNextID()) {
-            System.out.println("CurrentID " + DiscoveryClient.getCurrentID() + "    NextID: " + DiscoveryClient.getNextID());
+            System.out.println("Here");
             this.updateNetworkFileStatus();
         }
         Thread.yield();
