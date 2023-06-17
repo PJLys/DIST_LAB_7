@@ -101,7 +101,7 @@ public class ReplicationClient implements Runnable{
             if (!filename.toString().startsWith("sysy_")) {
                 return 0;
             }
-            if (filePath.endsWith(".swp") || (filePath.endsWith(".swx")) || filePath.endsWith("swpx")) {
+            if (filePath.endsWith(".swp") || (filePath.endsWith(".swx")) || filePath.endsWith("swpx") || filePath.endsWith("~")) {
                 return 0;
             }
 
