@@ -17,7 +17,7 @@ import java.util.*;
 
 @Service
 public class Client {
-    private static final Path owned_files = Path.of("" ,"src", "replicatd_files");
+    private static final Path owned_files = ReplicationClient.getReplicatedFilePath();
     private final SyncAgent syncAgent;
     public Client() {
         this.syncAgent = SyncAgent.getAgent();
