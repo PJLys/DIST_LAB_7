@@ -317,7 +317,7 @@ public class ReplicationClient implements Runnable{
         if (Objects.equals(extra_message, "ENTRY_DELETE")) {
             jo.put("data", null);
         } else {
-            jo.put("data", Arrays.toString(Files.readAllBytes(fileLocation)));
+            jo.put("data", Base64.getEncoder().encodeToString(Files.readAllBytes(fileLocation)));
         }
 
         // Also include the data of the log file when necessary
@@ -415,8 +415,9 @@ public class ReplicationClient implements Runnable{
             Logger.setOwner(log_file_path, nodeID);
         } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
             // Store the replicated file
+            byte[] byteArray = Base64.getDecoder().decode(data);
             FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(data.getBytes());
+            os_file.write(byteArray);
             os_file.close();
 
             // Check if a log file has been sent
