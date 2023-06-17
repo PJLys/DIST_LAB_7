@@ -317,7 +317,7 @@ public class ReplicationClient implements Runnable{
         if (Objects.equals(extra_message, "ENTRY_DELETE")) {
             jo.put("data", null);
         } else {
-            jo.put("data", Arrays.toString(Files.readAllBytes(fileLocation)));
+            jo.put("data", Files.readAllBytes(fileLocation));
         }
 
         // Also include the data of the log file when necessary
