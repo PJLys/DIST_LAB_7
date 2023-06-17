@@ -13,18 +13,8 @@ public class FailureAgentHandler implements Runnable {
 
     @Override
     public void run() {
-        // Create a new thread from the received agent
-        Thread agentThread = new Thread(this.failureAgent);
-
-        // Start the thread
-        agentThread.start();
-
-        // Wait for the thread to finish
-        try {
-            agentThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // Execute the FailureAgent
+        this.failureAgent.run();
 
         // Check if the agent needs to be terminated
         if (failureAgent.shouldTerminate(DiscoveryClient.getNextID())) {

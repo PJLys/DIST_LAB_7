@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class FailureAgent implements Runnable, Serializable {
+public class FailureAgent implements Serializable {
 
     private final int failingNodeId;
     /**
@@ -38,7 +38,7 @@ public class FailureAgent implements Runnable, Serializable {
         return completedNodes.get(0);
     }
 
-    @Override
+
     public void run() {
         // Check if the local files are owned by the failing node, and if so, send them to their new owner. The failing node does not have to do this.
         if (DiscoveryClient.getCurrentID() != this.failingNodeId) {
