@@ -158,9 +158,9 @@ public class ReplicationClient implements Runnable{
         String name = InetAddress.getLocalHost().getHostName();
         // Create 3 file names to add
         ArrayList<String> fileNames = new ArrayList<>();
-        fileNames.add("1_" + name);
-        fileNames.add("2_" + name);
-        fileNames.add("3_" + name);
+        fileNames.add("sysy_1_" + name);
+        fileNames.add("sysy_2_" + name);
+        fileNames.add("sysy_3_" + name);
 
         // Create the files
         String str = "Text";
