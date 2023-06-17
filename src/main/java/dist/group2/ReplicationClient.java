@@ -317,7 +317,7 @@ public class ReplicationClient implements Runnable{
         if (Objects.equals(extra_message, "ENTRY_DELETE")) {
             jo.put("data", null);
         } else {
-            System.out.println("Sending data bytes: " + Files.readAllBytes(fileLocation));
+            System.out.println("Sending data bytes: " + Arrays.toString(Files.readAllBytes(fileLocation)));
             System.out.println("Encoded: " + Base64.getEncoder().encodeToString(Files.readAllBytes(fileLocation)));
             jo.put("data", Base64.getEncoder().encodeToString(Files.readAllBytes(fileLocation)));
         }
