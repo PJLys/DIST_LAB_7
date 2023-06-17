@@ -98,6 +98,9 @@ public class ReplicationClient implements Runnable{
             Path filename = (Path) event.context();
             String filePath = local_file_path.resolve(filename).toString();
 
+            if (filename.toString().startsWith("sisy_")) {
+                return 0;
+            }
             if (filePath.endsWith(".swp") || (filePath.endsWith(".swx"))) {
                 return 0;
             }
