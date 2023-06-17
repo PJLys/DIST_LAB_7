@@ -25,27 +25,6 @@ public class AgentController {
     public void executeFailureAgent(@RequestBody FailureAgent failureAgent) {
         System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
         new Thread(new FailureAgentHandler(failureAgent)).start();
-//        // Create a new thread from the received agent
-//        Thread agentThread = new Thread(failureAgent);
-//
-//        // Start the thread
-//        agentThread.start();
-//
-//        // Wait for the thread to finish
-//        try {
-//            agentThread.join();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//
-//        // Check if the agent needs to be terminated
-//        if (failureAgent.shouldTerminate()) {
-//            return;
-//        }
-//
-//        // Execute the REST method on the next node
-//        String nextNodeUrl = NamingClient.getIPAddress(DiscoveryClient.getNextID());
-//        restTemplate.postForObject("http://" + nextNodeUrl + ":8082/agents/executeFailureAgent", failureAgent, Void.class);
     }
 
     public void startFailureAgent(int failingNodeId, int startingNodeId) {
