@@ -27,9 +27,9 @@ public class AgentController {
         new Thread(new FailureAgentHandler(failureAgent)).start();
     }
 
-    public void startFailureAgent(int failingNodeId, int startingNodeId) {
-        System.out.println("Starting failure agent with failingNodeId" + failingNodeId + " and startingNodeId" + startingNodeId);
-        FailureAgent failureAgent = new FailureAgent(failingNodeId, startingNodeId);
+    public static void startFailureAgent(int failingNodeId) {
+        System.out.println("Starting failure agent with failingNodeId" + failingNodeId);
+        FailureAgent failureAgent = new FailureAgent(failingNodeId);
         // Create a new thread for a FailureAgentHandler
         new Thread(new FailureAgentHandler(failureAgent)).start();
     }

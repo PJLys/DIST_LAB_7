@@ -48,7 +48,6 @@ public class SyncAgent implements Runnable, Serializable {
         // Only run if it is not the only node in the system
         System.out.println("CurrentID " + DiscoveryClient.getCurrentID() + "    NextID: " + DiscoveryClient.getNextID());
         if (DiscoveryClient.getCurrentID() != DiscoveryClient.getNextID()) {
-            System.out.println("Here");
             this.updateNetworkFileStatus();
         }
         Thread.yield();
@@ -84,30 +83,37 @@ public class SyncAgent implements Runnable, Serializable {
      * Ask for the information about the next node. Create HTTP request and receive information.
      */
     private void updateNetworkFileStatus() {
+        System.out.println("Updating network file status");
         // CREATE REQUEST
         String nextIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         RestTemplate template = new RestTemplate();
         // SEND HTTP REQUEST
         ResponseEntity<JSONArray> response = template.exchange(nextIP+"/sync:8082", HttpMethod.GET, null, JSONArray.class);
-        System.out.println("Response sync client status code:" + response.getStatusCode());
-        JSONArray jsarr = response.getBody();
-
-        if (jsarr==null) {
-            return;
+        int statusCode = response.getStatusCode().value();
+        System.out.println("Response sync client status code:" + statusCode);
+        if (statusCode != 200) {
+            AgentController.startFailureAgent(DiscoveryClient.getNextID());
         }
-        // Update local network list
-        for (Object obj : jsarr) {
-            if (!(obj instanceof JSONObject jsobj))
-                continue;
-            String name = (String) jsobj.get("name");
-            String lockValue = (String) jsobj.get("lock");
-            Optional<Boolean> lock;
-            if (!Objects.equals(lockValue, "")){
-                lock = Optional.of(Boolean.parseBoolean(lockValue));
-            } else {
-                lock = Optional.empty();
+        else {
+            JSONArray jsarr = response.getBody();
+
+            if (jsarr == null) {
+                return;
             }
-            networkfiles.put(name, lock);
+            // Update local network list
+            for (Object obj : jsarr) {
+                if (!(obj instanceof JSONObject jsobj))
+                    continue;
+                String name = (String) jsobj.get("name");
+                String lockValue = (String) jsobj.get("lock");
+                Optional<Boolean> lock;
+                if (!Objects.equals(lockValue, "")) {
+                    lock = Optional.of(Boolean.parseBoolean(lockValue));
+                } else {
+                    lock = Optional.empty();
+                }
+                networkfiles.put(name, lock);
+            }
         }
     }
 

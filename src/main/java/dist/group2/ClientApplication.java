@@ -81,8 +81,6 @@ public class ClientApplication {
     }
 
     public static void failure() {
-        ReplicationClient.setFailed(true);      // Prevent shutdown procedure from executing, as the failure agents handles it
-        agentController.startFailureAgent(DiscoveryClient.getCurrentID(), DiscoveryClient.getCurrentID());
         SpringApplication.exit(context);
     }
 
