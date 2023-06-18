@@ -7,6 +7,7 @@ import net.minidev.json.JSONObject;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -25,6 +26,7 @@ import java.util.*;
  * @attribute localFiles holds the names of files on the node and if they're accessible
 */
 @Component
+@EnableScheduling
 public class SyncAgent implements Runnable, Serializable {
     //Stores a filename with a lock:- If empty ==> No lock
     //                              - If present:  - true ==> No R/W
