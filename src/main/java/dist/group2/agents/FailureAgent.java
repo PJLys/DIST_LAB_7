@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class FailureAgent implements Serializable {
+public class FailureAgent implements Serializable, Runnable{
 
     private final int failingNodeId;
     /**
