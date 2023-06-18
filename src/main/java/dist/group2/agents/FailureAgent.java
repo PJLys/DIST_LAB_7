@@ -15,7 +15,7 @@ import java.util.List;
 
 public class FailureAgent implements Runnable, Serializable {
 
-    private final int failingNodeId;
+    private static int failingNodeId;
     /**
      * List used to store all nodes that have been passed. It is used to check whether it passed all nodes in the ring
      */
@@ -30,7 +30,7 @@ public class FailureAgent implements Runnable, Serializable {
         return completedNodes;
     }
 
-    public int getFailingNodeId() {
+    public static int getFailingNodeId() {
         return failingNodeId;
     }
 
