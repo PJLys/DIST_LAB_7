@@ -57,18 +57,21 @@ public class FailureAgent implements Serializable, Runnable{
                     if (Client.checkIfOwner(newOwnerIP, file.getName())) {
                         // Add the current node to the replicated files
                         RestTemplate restTemplate = new RestTemplate();
-                        // Determine the request URL based on the IP address and filename
+                        // Check if the node is the owner himself
                         if (Objects.equals(newOwnerIP, DiscoveryClient.getIPAddress())) {
-                            newOwnerIP = "localhost";
+                            Logger.addReplicator(ReplicationClient.getLogFilePath().resolve(file.getName() + ".log").toString(), DiscoveryClient.getCurrentID());
                         }
-                        String requestUrl = "http://" + newOwnerIP + "/api/" + file.getName() + "/" + DiscoveryClient.getCurrentID();
-                        try {
-                            // Send the HTTP request
-                            ResponseEntity<Boolean> response = restTemplate.getForEntity(requestUrl, Boolean.class);
-                        } catch (Exception e) {
-                            // Handle any exceptions that may occur during the request
-                            System.out.println("Failed to add this node to the replicator list of file " + file.getName() + " on node " + newOwnerIP);
-                            e.printStackTrace();
+                        else {
+                            // Determine the request URL based on the IP address and filename
+                            String requestUrl = "http://" + newOwnerIP + ":8082/api/" + file.getName() + "/" + DiscoveryClient.getCurrentID();
+                            try {
+                                // Send the HTTP request
+                                ResponseEntity<Boolean> response = restTemplate.getForEntity(requestUrl, Boolean.class);
+                            } catch (Exception e) {
+                                // Handle any exceptions that may occur during the request
+                                System.out.println("Failed to add this node to the replicator list of file " + file.getName() + " on node " + newOwnerIP);
+                                e.printStackTrace();
+                            }
                         }
                     } else {
                         try {
