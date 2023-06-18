@@ -52,14 +52,16 @@ public class SyncAgent implements Runnable, Serializable {
     /**
      * Check for files, and then yield the CPU
      */
-    @Scheduled(fixedRate = 0)   // Execute periodically
+    //@Scheduled(fixedRate = 0)   // Execute periodically
     @Override
     public void run() {
-        // Only run if it is not the only node in the system
-        if (DiscoveryClient.getCurrentID() != DiscoveryClient.getNextID()) {
-            this.updateNetworkFileStatus();
+        while (true) {
+            // Only run if it is not the only node in the system
+            if (DiscoveryClient.getCurrentID() != DiscoveryClient.getNextID()) {
+                this.updateNetworkFileStatus();
+            }
+            Thread.yield();
         }
-        Thread.yield();
     }
 
     /**
