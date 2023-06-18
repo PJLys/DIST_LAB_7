@@ -52,7 +52,7 @@ public class SyncAgent implements Runnable, Serializable {
     /**
      * Check for files, and then yield the CPU
      */
-    @Scheduled(fixedDelay =  5000)   // Execute periodically
+    @Scheduled(fixedRate = 0)   // Execute periodically
     @Override
     public void run() {
         // Only run if it is not the only node in the system
@@ -92,7 +92,7 @@ public class SyncAgent implements Runnable, Serializable {
      * Ask for the information about the next node. Create HTTP request and receive information.
      */
     private void updateNetworkFileStatus() {
-        System.out.println("--- SyncAgent is updating network file status ---");
+        //System.out.println("--- SyncAgent is updating network file status ---");
         // Decrement failedCounter
         if (this.failedCounter > 0) {
             this.failedCounter -= 1;
