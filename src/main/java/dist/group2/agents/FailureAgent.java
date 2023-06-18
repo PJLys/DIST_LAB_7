@@ -100,6 +100,14 @@ public class FailureAgent implements Serializable {
                     }
                 }
             }
+
+            // Update the nextID and previousID of the neighbouring nodes
+            if (this.failingNodeId == DiscoveryClient.getPreviousID()) {
+                DiscoveryClient.setPreviousID(NamingClient.getIdPreviousNode(this.failingNodeId));
+            }
+            if (this.failingNodeId == DiscoveryClient.getNextID()) {
+                DiscoveryClient.setPreviousID(NamingClient.getIdNextNode(this.failingNodeId));
+            }
         }
         // Add its own ID to the completedNodes
         this.completedNodes.add(DiscoveryClient.getCurrentID());
