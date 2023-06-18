@@ -86,13 +86,13 @@ public class SyncAgent implements Runnable, Serializable {
      * Ask for the information about the next node. Create HTTP request and receive information.
      */
     private void updateNetworkFileStatus() {
-        System.out.println("--- SyncAgent is being executed ---");
-        System.out.println("Updating network file status");
+        System.out.println("--- SyncAgent is updating network file status ---");
         // CREATE REQUEST
         String nextIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         RestTemplate template = new RestTemplate();
         // SEND HTTP REQUEST
-        ResponseEntity<JSONArray> response = template.exchange(nextIP+":8082/sync", HttpMethod.GET, null, JSONArray.class);
+        System.out.println("URL: " + "http" + nextIP+":8082/sync");
+        ResponseEntity<JSONArray> response = template.exchange("http" + nextIP+":8082/sync", HttpMethod.GET, null, JSONArray.class);
         int statusCode = response.getStatusCode().value();
         System.out.println("Response sync client status code:" + statusCode);
         if (statusCode != 200) {
