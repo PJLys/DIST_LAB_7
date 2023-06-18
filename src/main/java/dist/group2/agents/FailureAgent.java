@@ -1,14 +1,12 @@
 package dist.group2.agents;
-import dist.group2.Client;
-import dist.group2.DiscoveryClient;
-import dist.group2.NamingClient;
-import dist.group2.ReplicationClient;
+import dist.group2.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,6 +71,31 @@ public class FailureAgent implements Serializable {
                         } catch (IOException e) {
                             System.out.println("Error occurred while sending file" + file.getName() + " to " + newOwnerIP + " by failure agent");
                             e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
+            // Check if there are files replicated that originate from the failing node
+            File replicatedFolder = new File(ReplicationClient.getReplicatedFilePath().toUri());
+            File[] replicatedFiles = replicatedFolder.listFiles();
+            Path logPath = ReplicationClient.getLogFilePath();
+
+            assert replicatedFiles != null;
+            for (File file : replicatedFiles) {
+                // Check if the failing node is the owner of the file
+                int ownerID = NamingClient.findFileNodeID(file.getName());
+                if (ownerID == failingNodeId) {
+                    Path logFilePath = logPath.resolve(file.getName() + ".log");
+                    if (Logger.getOwner(logFilePath.toString()) == this.failingNodeId) {
+                        File logFile = new File(logFilePath.toUri());
+
+                        if (file.delete() && logFile.delete()) {
+                            System.out.println("Replicated file " + file.getName() + " originates from the failing node -> deleted it and the log file");
+                        }
+                        else {
+                            System.out.println("OPERATION FAILED: Replicated file " + file.getName() + " originates from the failing node -> tried it and the log file");
+
                         }
                     }
                 }
