@@ -87,6 +87,7 @@ public class SyncAgent implements Runnable, Serializable {
      */
     private void updateNetworkFileStatus() {
         System.out.println("--- SyncAgent is updating network file status ---");
+
         // CREATE REQUEST
         String nextIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         RestTemplate template = new RestTemplate();
