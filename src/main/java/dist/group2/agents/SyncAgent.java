@@ -33,8 +33,14 @@ public class SyncAgent implements Runnable, Serializable {
     //                                             - false ==> only R
     private final Map<String, Optional<Boolean>> networkfiles;
     private static SyncAgent instance;
+
+    /**
+     * Counter that keeps track of the failures of the request to the next node. Used to decide when to create a failure agent
+     */
+    private int failedCounter;
     private SyncAgent() {
         this.networkfiles = new HashMap<>();
+        this.failedCounter = 0;
     }
 
     public static SyncAgent getAgent() {
@@ -87,16 +93,22 @@ public class SyncAgent implements Runnable, Serializable {
      */
     private void updateNetworkFileStatus() {
         System.out.println("--- SyncAgent is updating network file status ---");
+        // Decrement failedCounter
+        if (this.failedCounter > 0) {
+            this.failedCounter -= 1;
+        }
         // CREATE REQUEST
         String nextIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         RestTemplate template = new RestTemplate();
         // SEND HTTP REQUEST
-        System.out.println("URL: " + "http://" + nextIP+":8082/agents/sync");
         ResponseEntity<JSONArray> response = template.exchange("http://" + nextIP+":8082/agents/sync", HttpMethod.GET, null, JSONArray.class);
         int statusCode = response.getStatusCode().value();
-        System.out.println("Response sync client status code:" + statusCode);
+        // If the request failed, increase the failedCounter
         if (statusCode != 200) {
-            AgentController.startFailureAgent(DiscoveryClient.getNextID());
+            this.failedCounter += 10;
+            if (failedCounter > 25) {
+                AgentController.startFailureAgent(DiscoveryClient.getNextID());
+            }
         }
         else {
             JSONArray jsarr = response.getBody();
