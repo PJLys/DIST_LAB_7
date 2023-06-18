@@ -230,15 +230,8 @@ public class ReplicationClient implements Runnable{
             return;
         }
 
-        // Get a list of the files in both directories
+        // Get a list of the files in the local files directory
         File[] localFiles = new File(local_file_path.toString()).listFiles();
-        File[] replicatedFiles = new File(replicated_file_path.toString()).listFiles();
-
-        // Test if one of the directories cannot be found
-        if (localFiles == null || replicatedFiles == null) {
-            System.out.println("ERROR - One of the file directories cannot be found!");
-            ClientApplication.failure();
-        }
 
         // Send a warning to the owners of these files so they can delete their replicated versions
         assert localFiles != null;
@@ -261,6 +254,9 @@ public class ReplicationClient implements Runnable{
 
         // Send the replicated files and their logs to the previous node which will become the new owner of the file.
         // When the previous node already stores this file locally -> send it to its previous node
+        // Get a list of the files in the replicated files directory. This needs to happen after removing the local files, as that can result in removing files from the replicated file directory.
+        File[] replicatedFiles = new File(replicated_file_path.toString()).listFiles();
+        assert replicatedFiles != null;
         for (File file : replicatedFiles) {
             System.out.println("Replicating file " + file.getName() + " to node " + previousNodeIP);
 
