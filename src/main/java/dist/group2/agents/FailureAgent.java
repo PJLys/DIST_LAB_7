@@ -87,7 +87,7 @@ public class FailureAgent implements Serializable {
                 int ownerID = NamingClient.findFileNodeID(file.getName());
                 if (ownerID == failingNodeId) {
                     Path logFilePath = logPath.resolve(file.getName() + ".log");
-                    if (Logger.getOwner(logFilePath.toString()) == this.failingNodeId) {
+                    if (Logger.getReplicators(logFilePath.toString()).get(0) == this.failingNodeId) {
                         File logFile = new File(logFilePath.toUri());
 
                         if (file.delete() && logFile.delete()) {
@@ -99,6 +99,14 @@ public class FailureAgent implements Serializable {
                         }
                     }
                 }
+            }
+
+            // Update the nextID and previousID of the neighbouring nodes
+            if (this.failingNodeId == DiscoveryClient.getPreviousID()) {
+                DiscoveryClient.setPreviousID(NamingClient.getIdPreviousNode(this.failingNodeId));
+            }
+            if (this.failingNodeId == DiscoveryClient.getNextID()) {
+                DiscoveryClient.setPreviousID(NamingClient.getIdNextNode(this.failingNodeId));
             }
         }
         // Add its own ID to the completedNodes
