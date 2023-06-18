@@ -7,6 +7,7 @@ import net.minidev.json.JSONObject;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -43,6 +44,7 @@ public class SyncAgent implements Runnable, Serializable {
     /**
      * Check for files, and then yield the CPU
      */
+    @Scheduled(fixedDelay =  500)   // Execute every 500 ms
     @Override
     public void run() {
         // Only run if it is not the only node in the system
