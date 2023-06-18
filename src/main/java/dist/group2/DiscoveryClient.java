@@ -29,6 +29,16 @@ public class DiscoveryClient {
         return previousID;
     }
 
+    public static void setPreviousID(int previousID) {
+        DiscoveryClient.previousID = previousID;
+        System.out.println("<---> previousID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
+    }
+
+    public static void setNextID(int nextID) {
+        DiscoveryClient.nextID = nextID;
+        System.out.println("<---> nextID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
+    }
+
     public static int getNextID() {
         return nextID;
     }
