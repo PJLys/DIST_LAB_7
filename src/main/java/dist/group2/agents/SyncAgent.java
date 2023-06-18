@@ -100,11 +100,20 @@ public class SyncAgent implements Runnable, Serializable {
         // CREATE REQUEST
         String nextIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         RestTemplate template = new RestTemplate();
+        boolean failed = false;
         // SEND HTTP REQUEST
-        ResponseEntity<JSONArray> response = template.exchange("http://" + nextIP+":8082/agents/sync", HttpMethod.GET, null, JSONArray.class);
-        int statusCode = response.getStatusCode().value();
+        ResponseEntity<JSONArray> response = null;
+        try {
+            response = template.exchange("http://" + nextIP + ":8082/agents/sync", HttpMethod.GET, null, JSONArray.class);
+            int statusCode = response.getStatusCode().value();
+            failed = statusCode != 200;
+        }
+        catch (Exception e) {
+            failed = true;
+        }
         // If the request failed, increase the failedCounter
-        if (statusCode != 200) {
+        if (failed) {
+            System.out.println("Sync request failed");
             this.failedCounter += 10;
             if (failedCounter > 25) {
                 AgentController.startFailureAgent(DiscoveryClient.getNextID());
