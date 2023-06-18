@@ -16,7 +16,7 @@ public class DiscoveryClient {
     private static int nextID;
     private static int currentID;
     private static String name;
-    private String IPAddress;
+    private static String IPAddress;
     private int namingPort;
     private int unicastPort;
     private String baseUrl;
@@ -27,6 +27,10 @@ public class DiscoveryClient {
 
     public static int getPreviousID() {
         return previousID;
+    }
+
+    public static String getIPAddress() {
+        return IPAddress;
     }
 
     public static void setPreviousID(int previousID) {
