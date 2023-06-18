@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 public class FailureAgent implements Serializable, Runnable{
@@ -57,7 +58,7 @@ public class FailureAgent implements Serializable, Runnable{
                         // Add the current node to the replicated files
                         RestTemplate restTemplate = new RestTemplate();
                         // Determine the request URL based on the IP address and filename
-                        if (newOwnerIP == DiscoveryClient.getIPAddress()) {
+                        if (Objects.equals(newOwnerIP, DiscoveryClient.getIPAddress())) {
                             newOwnerIP = "localhost";
                         }
                         String requestUrl = "http://" + newOwnerIP + "/api/" + file.getName() + "/" + DiscoveryClient.getCurrentID();
