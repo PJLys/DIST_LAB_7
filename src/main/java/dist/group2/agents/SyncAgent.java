@@ -50,7 +50,6 @@ public class SyncAgent implements Runnable, Serializable {
     @Override
     public void run() {
         // Only run if it is not the only node in the system
-        System.out.println("--- SyncAgent is being executed ---");
         if (DiscoveryClient.getCurrentID() != DiscoveryClient.getNextID()) {
             this.updateNetworkFileStatus();
         }
@@ -87,12 +86,13 @@ public class SyncAgent implements Runnable, Serializable {
      * Ask for the information about the next node. Create HTTP request and receive information.
      */
     private void updateNetworkFileStatus() {
+        System.out.println("--- SyncAgent is being executed ---");
         System.out.println("Updating network file status");
         // CREATE REQUEST
         String nextIP = NamingClient.getIPAddress(DiscoveryClient.getNextID());
         RestTemplate template = new RestTemplate();
         // SEND HTTP REQUEST
-        ResponseEntity<JSONArray> response = template.exchange(nextIP+"/sync:8082", HttpMethod.GET, null, JSONArray.class);
+        ResponseEntity<JSONArray> response = template.exchange(nextIP+":8082/sync", HttpMethod.GET, null, JSONArray.class);
         int statusCode = response.getStatusCode().value();
         System.out.println("Response sync client status code:" + statusCode);
         if (statusCode != 200) {
