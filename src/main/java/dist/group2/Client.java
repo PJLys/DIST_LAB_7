@@ -23,12 +23,6 @@ public class Client {
         this.syncAgent = SyncAgent.getAgent();
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void startSyncAgent() {
-        Thread syncThread = new Thread(this.syncAgent);
-        syncThread.start();
-    }
-
     public void readfile(String filename) throws RuntimeException {
         Optional<Boolean> lock = this.getLock(filename);
         if (lock.isPresent() && lock.get()) {
