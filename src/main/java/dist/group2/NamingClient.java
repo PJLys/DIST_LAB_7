@@ -74,7 +74,7 @@ public class NamingClient {
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             String IPAddress = response.getBody();
-            System.out.println("<" + name + "> - Node with ID " + nodeID + " has IPAddress " + IPAddress);
+//            System.out.println("<" + name + "> - Node with ID " + nodeID + " has IPAddress " + IPAddress);
             return IPAddress;
         } catch (Exception e) {
             throw new RuntimeException("Failed to find IPAddress of node with ID " + nodeID);
