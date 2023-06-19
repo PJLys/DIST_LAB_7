@@ -1,4 +1,5 @@
 package dist.group2.agents;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dist.group2.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +29,12 @@ public class FailureAgent implements Serializable, Runnable{
     public FailureAgent(int failingNodeId) {
         this.failingNodeId = failingNodeId;
         this.completedNodes = new ArrayList<>();
+    }
+
+    // Constructor for deserializing using Jackson ObjectMapper
+    public FailureAgent(@JsonProperty("failingNodeId") int failingNodeId, @JsonProperty("completedNodes") List<Integer> completedNodes) {
+        this.failingNodeId = failingNodeId;
+        this.completedNodes = completedNodes;
     }
 
     public List<Integer> getCompletedNodes() {
