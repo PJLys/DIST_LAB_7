@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@AllArgsConstructor
 @Data
 @ToString
 public class FailureAgent implements Serializable, Runnable{
