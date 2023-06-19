@@ -4,6 +4,8 @@ import net.minidev.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.Serializable;
+
 @RestController
 @RequestMapping(
         path = "agents"
@@ -25,7 +27,8 @@ public class AgentController {
     }
 
     @PostMapping("/executeFailureAgent")
-    public void executeFailureAgent(@RequestBody FailureAgent failureAgent) {
+    public void executeFailureAgent(@RequestBody Serializable failureAgentSerializable) {
+        FailureAgent failureAgent = (FailureAgent) failureAgentSerializable;
         System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
         new Thread(new FailureAgentHandler(failureAgent)).start();
     }
