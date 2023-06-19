@@ -1,5 +1,6 @@
 package dist.group2.agents;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.minidev.json.JSONArray;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,9 @@ public class AgentController {
     private final SyncAgent syncAgent;
 
     @Autowired
-    public AgentController() {
+    public AgentController(ObjectMapper objectMapper) {
         this.syncAgent = SyncAgent.getAgent();
+        this.objectMapper = objectMapper;
     }
 
     public static void startFailureAgent(int failingNodeId) {
@@ -31,6 +33,13 @@ public class AgentController {
     @PostMapping("/executeFailureAgent")
     public ResponseEntity<Void> executeFailureAgent(@RequestBody String failureAgentString) {
         System.out.println("Failure agent string: " + failureAgentString);
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            FailureAgent failureAgent = objectMapper.readValue(failureAgentString, FailureAgent.class);
+        }
+        catch (Exception e) {
+            System.out.println("Failed to convert received file to Failure Agent");
+        }
 //        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
 //        new Thread(new FailureAgentHandler(failureAgent)).start();
         return ResponseEntity.noContent().build();
