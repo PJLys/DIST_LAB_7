@@ -24,17 +24,17 @@ public class AgentController {
         new Thread(new FailureAgentHandler(failureAgent)).start();
     }
 
-//    @PostMapping("/executeFailureAgent")
-//    public void executeFailureAgent(@RequestBody FailureAgent failureAgent) {
-//        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
-//        new Thread(new FailureAgentHandler(failureAgent)).start();
-//    }
     @PostMapping("/executeFailureAgent")
-    public void executeFailureAgent(@RequestBody String test) {
-//        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
-//        new Thread(new FailureAgentHandler(failureAgent)).start();
-        System.out.println(test + " received");
+    public void executeFailureAgent(@RequestBody FailureAgent failureAgent) {
+        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
+        new Thread(new FailureAgentHandler(failureAgent)).start();
     }
+//    @PostMapping("/executeFailureAgent")
+//    public void executeFailureAgent(@RequestBody String test) {
+////        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
+////        new Thread(new FailureAgentHandler(failureAgent)).start();
+//        System.out.println(test + " received");
+//    }
 
     @GetMapping("/sync")
     public JSONArray listFiles() {
