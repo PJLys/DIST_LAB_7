@@ -5,7 +5,7 @@ import dist.group2.NamingClient;
 import org.springframework.web.client.RestTemplate;
 
 public class FailureAgentHandler implements Runnable {
-    private final FailureAgent failureAgent;
+    private FailureAgent failureAgent;
 
     public FailureAgentHandler(FailureAgent failureAgent) {
         this.failureAgent = failureAgent;
@@ -35,14 +35,14 @@ public class FailureAgentHandler implements Runnable {
             nextNodeID = NamingClient.getIdPreviousNode(nextNodeID);
         }
         // Check if the agent needs to be terminated
-        if (failureAgent.shouldTerminate(nextNodeID)) {
+        if (this.failureAgent.shouldTerminate(nextNodeID)) {
             // The last node deletes the failing node from the database
-            NamingClient.deleteNodeById(failureAgent.getFailingNodeId());
+            NamingClient.deleteNodeById(this.failureAgent.getFailingNodeId());
             return;
         }
         String nextNodeIP = NamingClient.getIPAddress(nextNodeID);
         System.out.println("Sending failure agent to " + DiscoveryClient.getPreviousID() + " with IP " + nextNodeIP);
         RestTemplate restTemplate = new RestTemplate();
-        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", null, Void.class);
+        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", this.failureAgent, Void.class);
     }
 }
