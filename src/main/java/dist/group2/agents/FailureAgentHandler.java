@@ -37,12 +37,12 @@ public class FailureAgentHandler implements Runnable {
         // Check if the agent needs to be terminated
         if (failureAgent.shouldTerminate(nextNodeID)) {
             // The last node deletes the failing node from the database
-            NamingClient.deleteNodeById(this.failureAgent.getFailingNodeId());
+            NamingClient.deleteNodeById(failureAgent.getFailingNodeId());
             return;
         }
         String nextNodeIP = NamingClient.getIPAddress(nextNodeID);
         System.out.println("Sending failure agent to " + DiscoveryClient.getPreviousID() + " with IP " + nextNodeIP);
         RestTemplate restTemplate = new RestTemplate();
-        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", this.failureAgent, Void.class);
+        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgent, Void.class);
     }
 }
