@@ -31,23 +31,20 @@ public class AgentController {
 
     @PostMapping("/executeFailureAgent")
     public ResponseEntity<Void> executeFailureAgent(@RequestBody String failureAgentString) {
-        System.out.println("Failure agent string: " + failureAgentString);
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             FailureAgent failureAgent = objectMapper.readValue(failureAgentString, FailureAgent.class);
+            System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
+            new Thread(new FailureAgentHandler(failureAgent)).start();
         }
         catch (Exception e) {
             System.out.println("Failed to convert received file to Failure Agent");
         }
-//        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
-//        new Thread(new FailureAgentHandler(failureAgent)).start();
         return ResponseEntity.noContent().build();
     }
 //    @PostMapping("/executeFailureAgent")
 //    public void executeFailureAgent(@RequestBody String test) {
-////        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
-////        new Thread(new FailureAgentHandler(failureAgent)).start();
-//        System.out.println(test + " received");
+
 //    }
 
     @GetMapping("/sync")
