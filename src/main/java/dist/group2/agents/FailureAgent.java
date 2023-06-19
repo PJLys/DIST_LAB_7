@@ -1,5 +1,8 @@
 package dist.group2.agents;
 import dist.group2.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.ToString;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -11,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-
+@AllArgsConstructor
+@Data
+@ToString
 public class FailureAgent implements Serializable, Runnable{
 
     private final int failingNodeId;

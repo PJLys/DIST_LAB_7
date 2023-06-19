@@ -49,6 +49,8 @@ public class FailureAgentHandler implements Runnable {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             String failureAgentString = objectMapper.writeValueAsString(this.failureAgent);
+            FailureAgent failureAgent1 = objectMapper.readValue(failureAgentString, FailureAgent.class);
+            System.out.println("Success to read failure agent string " + failureAgent1);
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgentString, ResponseEntity.class);
             System.out.println("Response: " + response.getBody());
