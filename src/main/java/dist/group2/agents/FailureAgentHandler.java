@@ -58,17 +58,18 @@ public class FailureAgentHandler implements Runnable {
             System.out.println("\n <---> Failed to serialize failureAgent");
         }
 
-        // Deserializing
-        try {
-            FailureAgent failureAgent1 = objectMapper.readValue(failureAgentString, FailureAgent.class);
-            System.out.println("\n\t <---> Success to read failure agent string " + failureAgent1);
-        } catch (JsonProcessingException e) {
-            System.out.println("\n\t <---> Failed to send failure agent");
-            e.printStackTrace();
-        }
+//        // Deserializing
+//        try {
+//            FailureAgent failureAgent1 = objectMapper.readValue(failureAgentString, FailureAgent.class);
+//            System.out.println("\n\t <---> Success to read failure agent string " + failureAgent1);
+//        } catch (JsonProcessingException e) {
+//            System.out.println("\n\t <---> Failed to send failure agent");
+//            e.printStackTrace();
+//        }
 
 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgentString, ResponseEntity.class);
+//        ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgentString, ResponseEntity.class);
+        ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", this.failureAgent, ResponseEntity.class);
     }
 }

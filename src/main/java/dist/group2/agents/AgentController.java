@@ -29,18 +29,24 @@ public class AgentController {
         new Thread(new FailureAgentHandler(failureAgent)).start();
     }
 
+//    @PostMapping("/executeFailureAgent")
+//    public ResponseEntity<Void> executeFailureAgent(@RequestBody String failureAgentString) {
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        try {
+//            FailureAgent failureAgent = objectMapper.readValue(failureAgentString, FailureAgent.class);
+//            System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
+//            new Thread(new FailureAgentHandler(failureAgent)).start();
+//        }
+//        catch (Exception e) {
+//            e.printStackTrace();
+//            System.out.println("Failed to convert received file to Failure Agent");
+//        }
+//        return ResponseEntity.noContent().build();
+//    }
     @PostMapping("/executeFailureAgent")
-    public ResponseEntity<Void> executeFailureAgent(@RequestBody String failureAgentString) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            FailureAgent failureAgent = objectMapper.readValue(failureAgentString, FailureAgent.class);
-            System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
-            new Thread(new FailureAgentHandler(failureAgent)).start();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Failed to convert received file to Failure Agent");
-        }
+    public ResponseEntity<Void> executeFailureAgent(@RequestBody FailureAgent failureAgent) {
+        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
+        new Thread(new FailureAgentHandler(failureAgent)).start();
         return ResponseEntity.noContent().build();
     }
 //    @PostMapping("/executeFailureAgent")
