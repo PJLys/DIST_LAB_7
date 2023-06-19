@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 
-public class FailureAgent implements Runnable{
+public class FailureAgent implements  Runnable{
 
     private final int failingNodeId;
     /**
