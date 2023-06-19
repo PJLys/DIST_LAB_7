@@ -119,8 +119,9 @@ public class FailureAgent implements Serializable, Runnable{
                 DiscoveryClient.setPreviousID(NamingClient.getIdPreviousNode(this.failingNodeId));
             }
             if (this.failingNodeId == DiscoveryClient.getNextID()) {
-                System.out.println("<FailureAgent> - setting nextID to "+NamingClient.getIdNextNode(this.failingNodeId));
-                DiscoveryClient.setPreviousID(NamingClient.getIdNextNode(this.failingNodeId));
+                System.out.println("\n<FailureAgent> - setting nextID to "+NamingClient.getIdNextNode(this.failingNodeId));
+                DiscoveryClient.setNextID(NamingClient.getIdNextNode(this.failingNodeId));
+                System.out.println(DiscoveryClient.getNextID());
             }
         }
         // Add its own ID to the completedNodes
