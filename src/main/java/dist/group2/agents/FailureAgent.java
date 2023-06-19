@@ -26,6 +26,7 @@ public class FailureAgent implements Serializable, Runnable{
      */
     private final List<Integer> completedNodes;
 
+    // Useless field, but it is needed to prevent errors during transmission of the agent. DON'T TRY TO REMOVE IT, YOU WILL LOSE A DAY DEBUGGING IT
     private final int startingNodeId;
 
     public FailureAgent(int failingNodeId) {
