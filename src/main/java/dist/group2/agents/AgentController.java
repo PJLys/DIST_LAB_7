@@ -38,6 +38,7 @@ public class AgentController {
             new Thread(new FailureAgentHandler(failureAgent)).start();
         }
         catch (Exception e) {
+            e.printStackTrace();
             System.out.println("Failed to convert received file to Failure Agent");
         }
         return ResponseEntity.noContent().build();

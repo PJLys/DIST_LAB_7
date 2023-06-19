@@ -3,6 +3,7 @@ package dist.group2;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -49,8 +50,13 @@ public class NamingClient {
 
     public static void deleteNodeById(int nodeId) {
         String url = baseUrl + "/nodes/ID/" + nodeId;
-        restTemplate.delete(url);
-        System.out.println("<" + name + "> - Deleted node with ID " + nodeId);
+        try {
+            restTemplate.delete(url);
+            System.out.println("<" + name + "> - Deleted node with ID " + nodeId);
+        }
+        catch (RestClientException e) {
+            System.out.println("Failed to delete node " + nodeId + " from NS");
+        }
     }
 
 
