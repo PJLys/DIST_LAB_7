@@ -29,9 +29,10 @@ public class AgentController {
     }
 
     @PostMapping("/executeFailureAgent")
-    public ResponseEntity<Void> executeFailureAgent(@RequestBody FailureAgent failureAgent) {
-        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
-        new Thread(new FailureAgentHandler(failureAgent)).start();
+    public ResponseEntity<Void> executeFailureAgent(@RequestBody String failureAgentString) {
+        System.out.println("Failure agent string: " + failureAgentString);
+//        System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
+//        new Thread(new FailureAgentHandler(failureAgent)).start();
         return ResponseEntity.noContent().build();
     }
 //    @PostMapping("/executeFailureAgent")
