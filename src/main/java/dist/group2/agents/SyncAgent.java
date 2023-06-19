@@ -92,7 +92,6 @@ public class SyncAgent implements Runnable, Serializable {
      * Ask for the information about the next node. Create HTTP request and receive information.
      */
     private void updateNetworkFileStatus() {
-        System.out.println("--- SyncAgent is updating network file status ---");
         // Decrement failedCounter
         if (this.failedCounter > 0) {
             this.failedCounter -= 1;
