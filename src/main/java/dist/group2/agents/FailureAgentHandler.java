@@ -1,17 +1,12 @@
 package dist.group2.agents;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 public class FailureAgentHandler implements Runnable {
-    private FailureAgent failureAgent;
+    private final FailureAgent failureAgent;
 
     public FailureAgentHandler(FailureAgent failureAgent) {
         this.failureAgent = failureAgent;
@@ -47,29 +42,7 @@ public class FailureAgentHandler implements Runnable {
 
         String nextNodeIP = NamingClient.getIPAddress(nextNodeID);
         System.out.println("Sending failure agent to " + DiscoveryClient.getPreviousID() + " with IP " + nextNodeIP);
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        // Serializing
-        String failureAgentString = null;
-        try {
-            failureAgentString = objectMapper.writeValueAsString(this.failureAgent);
-            System.out.println("\n <---> Serialized to "+ failureAgentString);
-        } catch (JsonProcessingException e) {
-            System.out.println("\n <---> Failed to serialize failureAgent");
-        }
-
-//        // Deserializing
-//        try {
-//            FailureAgent failureAgent1 = objectMapper.readValue(failureAgentString, FailureAgent.class);
-//            System.out.println("\n\t <---> Success to read failure agent string " + failureAgent1);
-//        } catch (JsonProcessingException e) {
-//            System.out.println("\n\t <---> Failed to send failure agent");
-//            e.printStackTrace();
-//        }
-
-
         RestTemplate restTemplate = new RestTemplate();
-//        ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgentString, ResponseEntity.class);
         ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", this.failureAgent, ResponseEntity.class);
     }
 }
