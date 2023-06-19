@@ -18,9 +18,8 @@ public class AgentController {
     private final SyncAgent syncAgent;
 
     @Autowired
-    public AgentController(ObjectMapper objectMapper) {
+    public AgentController() {
         this.syncAgent = SyncAgent.getAgent();
-        this.objectMapper = objectMapper;
     }
 
     public static void startFailureAgent(int failingNodeId) {
