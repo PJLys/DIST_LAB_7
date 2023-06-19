@@ -52,7 +52,7 @@ public class SyncAgent implements Runnable, Serializable {
     /**
      * Check for files, and then yield the CPU
      */
-    @Scheduled(fixedDelay =  2000)   // Execute periodically
+    @Scheduled(fixedDelay =  1000)   // Execute periodically
     @Override
     public void run() {
         // Only run if it is not the only node in the system
