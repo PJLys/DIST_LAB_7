@@ -116,6 +116,7 @@ public class SyncAgent implements Runnable, Serializable {
             this.failedCounter += 10;
             if (failedCounter > 25) {
                 AgentController.startFailureAgent(DiscoveryClient.getNextID());
+                this.failedCounter = 0;
             }
         }
         else {
