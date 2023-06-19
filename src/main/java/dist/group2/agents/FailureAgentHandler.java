@@ -54,11 +54,9 @@ public class FailureAgentHandler implements Runnable {
             System.out.println("Success to read failure agent string " + failureAgent1);
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgentString, ResponseEntity.class);
-            System.out.println("Response: " + response.getBody());
         } catch (JsonProcessingException e) {
             System.out.println("Failed to send failure agent");
             e.printStackTrace();
         }
-
     }
 }
