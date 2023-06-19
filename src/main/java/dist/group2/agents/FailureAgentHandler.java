@@ -44,6 +44,7 @@ public class FailureAgentHandler implements Runnable {
             NamingClient.deleteNodeById(this.failureAgent.getFailingNodeId());
             return;
         }
+
         String nextNodeIP = NamingClient.getIPAddress(nextNodeID);
         System.out.println("Sending failure agent to " + DiscoveryClient.getPreviousID() + " with IP " + nextNodeIP);
         ObjectMapper objectMapper = new ObjectMapper();
