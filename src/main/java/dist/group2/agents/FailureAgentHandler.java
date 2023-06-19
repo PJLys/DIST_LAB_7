@@ -70,6 +70,7 @@ public class FailureAgentHandler implements Runnable {
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgentString, ResponseEntity.class);
+        assert response != null;
         System.out.println(response.getBody());
     }
 }

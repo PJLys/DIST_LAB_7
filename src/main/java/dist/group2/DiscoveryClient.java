@@ -53,7 +53,7 @@ public class DiscoveryClient {
 
     public void init(String name, String IPAddress, int unicastPort, int namingPort) {
         DiscoveryClient.name = name;
-        this.IPAddress = IPAddress;
+        DiscoveryClient.IPAddress = IPAddress;
         this.baseUrl = null;
         this.namingPort = namingPort;
         this.unicastPort = unicastPort;

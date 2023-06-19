@@ -45,6 +45,7 @@ public class FailureAgent implements Serializable, Runnable{
 
     @Override
     public void run() {
+        System.out.println("<FailureAgent> - Is running");
         // Check if the local files are owned by the failing node, and if so, send them to their new owner. The failing node does not have to do this.
         if (DiscoveryClient.getCurrentID() != this.failingNodeId) {
             // Read the file list of the current node
@@ -118,6 +119,7 @@ public class FailureAgent implements Serializable, Runnable{
                 DiscoveryClient.setPreviousID(NamingClient.getIdPreviousNode(this.failingNodeId));
             }
             if (this.failingNodeId == DiscoveryClient.getNextID()) {
+                System.out.println("<FailureAgent> - setting nextID to "+NamingClient.getIdNextNode(this.failingNodeId));
                 DiscoveryClient.setPreviousID(NamingClient.getIdNextNode(this.failingNodeId));
             }
         }
