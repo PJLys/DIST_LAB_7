@@ -5,6 +5,7 @@ import dist.group2.NamingClient;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 public class FailureAgentHandler implements Runnable {
@@ -52,6 +53,7 @@ public class FailureAgentHandler implements Runnable {
         HttpEntity<FailureAgent> requestEntity = new HttpEntity<>(failureAgent, headers);
         System.out.println(requestEntity.getBody());
         RestTemplate restTemplate = new RestTemplate();
-        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", requestEntity, Void.class);
+        ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", requestEntity, ResponseEntity.class);
+        System.out.println("Response: " + response.getBody());
     }
 }

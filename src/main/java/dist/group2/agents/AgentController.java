@@ -1,7 +1,9 @@
 package dist.group2.agents;
 
 import net.minidev.json.JSONArray;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.Serializable;
@@ -27,10 +29,10 @@ public class AgentController {
     }
 
     @PostMapping("/executeFailureAgent")
-    public void executeFailureAgent(@RequestBody Serializable failureAgentSerializable) {
-        FailureAgent failureAgent = (FailureAgent) failureAgentSerializable;
+    public ResponseEntity<Void> executeFailureAgent(@RequestBody FailureAgent failureAgent) {
         System.out.println("Received failure agent with failingNodeId " + failureAgent.getFailingNodeId() + " and startingNodeId " + failureAgent.getStartingNodeId());
         new Thread(new FailureAgentHandler(failureAgent)).start();
+        return ResponseEntity.noContent().build();
     }
 //    @PostMapping("/executeFailureAgent")
 //    public void executeFailureAgent(@RequestBody String test) {
