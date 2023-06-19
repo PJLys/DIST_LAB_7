@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 
-public class FailureAgent implements  Runnable{
+public class FailureAgent implements Serializable, Runnable{
 
     private final int failingNodeId;
     /**
@@ -102,7 +102,7 @@ public class FailureAgent implements  Runnable{
                             System.out.println("Replicated file " + file.getName() + " originates from the failing node -> deleted it and the log file");
                         }
                         else {
-                            System.out.println("OPERATION FAILED: Replicated file " + file.getName() + " originates from the failing node -> tried to delete it and the log file but failed");
+                            System.out.println("OPERATION FAILED: Replicated file " + file.getName() + " originates from the failing node -> tried to delete it and the log file locally but failed");
                         }
                     }
                 }
