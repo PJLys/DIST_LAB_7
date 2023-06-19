@@ -27,11 +27,12 @@ public class FailureAgentHandler implements Runnable {
         }
         // Execute the FailureAgent
         this.failureAgent.run();
-        // Execute the REST method on the next node
-        int nextNodeID = DiscoveryClient.getNextID();
+
+        // Execute the REST method on the next node, which is the previous one in the topology
+        int nextNodeID = DiscoveryClient.getPreviousID();
         // Skip the failing node
         if (nextNodeID == this.failureAgent.getFailingNodeId()) {
-            nextNodeID = NamingClient.getIdNextNode(nextNodeID);
+            nextNodeID = NamingClient.getIdPreviousNode(nextNodeID);
         }
         // Check if the agent needs to be terminated
         if (failureAgent.shouldTerminate(nextNodeID)) {
