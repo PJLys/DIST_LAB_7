@@ -1,5 +1,7 @@
 package dist.group2.agents;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
 import org.springframework.http.HttpEntity;
@@ -44,14 +46,16 @@ public class FailureAgentHandler implements Runnable {
         }
         String nextNodeIP = NamingClient.getIPAddress(nextNodeID);
         System.out.println("Sending failure agent to " + DiscoveryClient.getPreviousID() + " with IP " + nextNodeIP);
-        // Create headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        // Create the request entity with the FailureAgent object as the body and headers
-        HttpEntity<FailureAgent> requestEntity = new HttpEntity<>(failureAgent, headers);
-        System.out.println(requestEntity.getBody());
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", requestEntity, ResponseEntity.class);
-        System.out.println("Response: " + response.getBody());
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String failureAgentString = objectMapper.writeValueAsString(this.failureAgent);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgentString, ResponseEntity.class);
+            System.out.println("Response: " + response.getBody());
+        } catch (JsonProcessingException e) {
+            System.out.println("Failed to send failure agent");
+            e.printStackTrace();
+        }
+
     }
 }
