@@ -29,8 +29,6 @@ public class FailureAgentHandler implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // Execute the FailureAgent
-        this.failureAgent.run();
 
         // Execute the REST method on the next node, which is the previous one in the topology
         int nextNodeID = DiscoveryClient.getPreviousID();
