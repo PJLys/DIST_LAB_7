@@ -2,6 +2,9 @@ package dist.group2.agents;
 
 import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
 public class FailureAgentHandler implements Runnable {
@@ -42,7 +45,13 @@ public class FailureAgentHandler implements Runnable {
         }
         String nextNodeIP = NamingClient.getIPAddress(nextNodeID);
         System.out.println("Sending failure agent to " + DiscoveryClient.getPreviousID() + " with IP " + nextNodeIP);
+        // Create headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        // Create the request entity with the FailureAgent object as the body and headers
+        HttpEntity<FailureAgent> requestEntity = new HttpEntity<>(failureAgent, headers);
+        System.out.println(requestEntity.getBody());
         RestTemplate restTemplate = new RestTemplate();
-        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", this.failureAgent, Void.class);
+        restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", requestEntity, Void.class);
     }
 }
