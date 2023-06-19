@@ -48,15 +48,28 @@ public class FailureAgentHandler implements Runnable {
         String nextNodeIP = NamingClient.getIPAddress(nextNodeID);
         System.out.println("Sending failure agent to " + DiscoveryClient.getPreviousID() + " with IP " + nextNodeIP);
         ObjectMapper objectMapper = new ObjectMapper();
+
+        // Serializing
+        String failureAgentString = null;
         try {
-            String failureAgentString = objectMapper.writeValueAsString(this.failureAgent);
-            FailureAgent failureAgent1 = objectMapper.readValue(failureAgentString, FailureAgent.class);
-            System.out.println("Success to read failure agent string " + failureAgent1);
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgentString, ResponseEntity.class);
+            failureAgentString = objectMapper.writeValueAsString(this.failureAgent);
+            System.out.println("\n <---> Serialized to "+ failureAgentString);
         } catch (JsonProcessingException e) {
-            System.out.println("Failed to send failure agent");
+            System.out.println("\n <---> Failed to serialize failureAgent");
+        }
+
+        // Deserializing
+        try {
+            FailureAgent failureAgent1 = objectMapper.readValue(failureAgentString, FailureAgent.class);
+            System.out.println("\n\t <---> Success to read failure agent string " + failureAgent1);
+        } catch (JsonProcessingException e) {
+            System.out.println("\n\t <---> Failed to send failure agent");
             e.printStackTrace();
         }
+
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Void> response = restTemplate.postForObject("http://" + nextNodeIP + ":8082/agents/executeFailureAgent", failureAgentString, ResponseEntity.class);
+        System.out.println(response.getBody());
     }
 }
