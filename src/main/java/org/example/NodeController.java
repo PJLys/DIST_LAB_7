@@ -1,4 +1,4 @@
-package dist.group2;
+package org.example;
 
 import java.io.BufferedReader;
 import java.io.IOException;
