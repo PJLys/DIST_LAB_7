@@ -1,8 +1,8 @@
-# DIST LAB 6 : Agents
+# DIST LAB 7 : GUI
 
 ## About
 
-In this project we will add agents that sync the local files to the network files in order to manage R/W and node failures.
+This code extends the application with a user interface that can be used by pcs to use the network.
 
 ## Timeline
 

@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>dist.group2</groupId>
-	<artifactId>DIST_LAB_6</artifactId>
+	<artifactId>DIST_LAB_7</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>DIST_LAB_6</name>
+	<name>DIST_LAB_7</name>
 	<description>Naming server system on a ring topology</description>
 	<properties>
 		<java.version>17</java.version>
