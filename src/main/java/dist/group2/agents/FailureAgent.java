@@ -102,30 +102,6 @@ public class FailureAgent implements Serializable, Runnable{
                 }
             }
 
-            // Check if there are files replicated that originate from the failing node
-            File replicatedFolder = new File(ReplicationClient.getReplicatedFilePath().toUri());
-            File[] replicatedFiles = replicatedFolder.listFiles();
-            Path logPath = ReplicationClient.getLogFilePath();
-
-            assert replicatedFiles != null;
-            for (File file : replicatedFiles) {
-                // Check if the failing node is the owner of the file
-                int ownerID = NamingClient.findFileNodeID(file.getName());
-                if (ownerID == failingNodeId) {
-                    Path logFilePath = logPath.resolve(file.getName() + ".log");
-                    if (Logger.getReplicators(logFilePath.toString()).get(0) == this.failingNodeId) {
-                        File logFile = new File(logFilePath.toUri());
-
-                        if (file.delete() && logFile.delete()) {
-                            System.out.println("Replicated file " + file.getName() + " originates from the failing node -> deleted it and the log file");
-                        }
-                        else {
-                            System.out.println("OPERATION FAILED: Replicated file " + file.getName() + " originates from the failing node -> tried to delete it and the log file locally but failed");
-                        }
-                    }
-                }
-            }
-
             // Update the nextID and previousID of the neighbouring nodes
             if (this.failingNodeId == DiscoveryClient.getPreviousID()) {
                 System.out.println("\n<FailureAgent> - setting previousID of " +
