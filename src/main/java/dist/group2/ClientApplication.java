@@ -1,9 +1,8 @@
 package dist.group2;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import dist.group2.agents.AgentController;
 import dist.group2.agents.SyncAgent;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +18,10 @@ import java.net.InetAddress;
 @SpringBootApplication
 public class ClientApplication {
     public static ApplicationContext context;
+    private static AgentController agentController;
     private final DiscoveryClient discoveryClient;
     private final ReplicationClient replicationClient;
     private final SyncAgent syncAgent;
-    private static AgentController agentController;
     Thread replicationthread;
 
     @Autowired
@@ -50,6 +49,15 @@ public class ClientApplication {
 
     }
 
+    public static void failure() {
+        SpringApplication.exit(context);
+    }
+
+    public static void main(String[] args) {
+        // Run Client
+        context = SpringApplication.run(ClientApplication.class, args);
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     public void run() {
         Logger logger = LoggerFactory.getLogger(ClientApplication.class);
@@ -61,31 +69,21 @@ public class ClientApplication {
             this.replicationClient.addFiles();
             this.replicationClient.setFileDirectoryWatchDog();
             this.replicationClient.replicateFiles();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         replicationthread = new Thread(replicationClient);
         replicationthread.start();
     }
+
     @PreDestroy
     public void shutdown() {
         replicationthread.stop();
         try {
             Thread.sleep(2000);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-    }
-
-    public static void failure() {
-        SpringApplication.exit(context);
-    }
-
-    public static void main(String[] args) {
-        // Run Client
-        context = SpringApplication.run(ClientApplication.class, args);
     }
 }

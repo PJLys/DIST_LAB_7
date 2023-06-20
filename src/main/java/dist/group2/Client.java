@@ -2,25 +2,70 @@ package dist.group2;
 
 import dist.group2.agents.SyncAgent;
 import net.minidev.json.JSONObject;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class Client {
     private static final Path owned_files = ReplicationClient.getReplicatedFilePath();
     private final SyncAgent syncAgent;
+
     public Client() {
         this.syncAgent = SyncAgent.getAgent();
+    }
+
+    /**
+     * Request the ID of a node
+     *
+     * @param nodeIP the IP address of the node to request
+     * @return the ID of the node
+     */
+    public static int getNodeIdForIp(String nodeIP) {
+        String url = "http://" + nodeIP + ":" + 8082 + "/client/nodeID";
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            int nodeID = Integer.parseInt(Objects.requireNonNull(response.getBody()));
+            System.out.println("Node with IP " + nodeIP + " has ID " + nodeID);
+            return nodeID;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to find ID of node with IP " + nodeIP);
+        }
+    }
+
+    /**
+     * Checks if the node with IP address nodeIP owns the file with name fileName
+     *
+     * @param nodeIP   the IP address of the node
+     * @param fileName the name of the file
+     * @return true if the node owns the file, false otherwise
+     */
+    public static boolean checkIfOwner(String nodeIP, String fileName) {
+        // Create a RestTemplate instance
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Determine the request URL based on the IP address and filename
+        String requestUrl = "http://" + nodeIP + ":" + 8082 + "/client/" + fileName + "/owner";
+
+        try {
+            // Send the HTTP request
+            ResponseEntity<Boolean> response = restTemplate.getForEntity(requestUrl, Boolean.class);
+            return Boolean.TRUE.equals(response.getBody());
+        } catch (Exception e) {
+            // Handle any exceptions that may occur during the request
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public void readfile(String filename) throws RuntimeException {
@@ -44,12 +89,12 @@ public class Client {
         this.request(ipaddr, filename, true);
     }
 
-
     /**
      * Request a file to the remote node
-     * @param ipaddr ip address of the node
+     *
+     * @param ipaddr   ip address of the node
      * @param filename name of requested file
-     * @param method the action we want to perform on the file
+     * @param method   the action we want to perform on the file
      */
     private void request(String ipaddr, String filename, boolean method) {
         // Create the request body
@@ -92,9 +137,10 @@ public class Client {
 
     /**
      * Handle an incoming file request from another node
+     *
      * @param nodename name of the requesting node
      * @param filename name of the file that
-     * @param method action of the requester
+     * @param method   action of the requester
      */
     protected byte[] incomingRequest(String nodename, String filename, boolean method) {
         Path path_to_file = Paths.get(String.valueOf(owned_files), filename);
@@ -106,62 +152,19 @@ public class Client {
             return Files.readAllBytes(path_to_file);
         } catch (IOException e) {
             System.out.println("Failed to access file!\n\n");
-            System.out.println(e.getMessage()+"\n\n");
+            System.out.println(e.getMessage() + "\n\n");
             System.out.println(Arrays.toString(e.getStackTrace()));
         }
         return new byte[0];
     }
 
-
     /**
      * Check the local list for the lock of the file
+     *
      * @param filename name of file we request the lock from
      * @return Optional containing either a read (false) or write (true) lock
      */
     private Optional<Boolean> getLock(String filename) {
         return this.syncAgent.getLock(filename);
-    }
-
-    /**
-     * Request the ID of a node
-     * @param nodeIP the IP address of the node to request
-     * @return the ID of the node
-     */
-    public static int getNodeIdForIp(String nodeIP) {
-        String url = "http://" + nodeIP + ":" + 8082 + "/client/nodeID";
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            int nodeID = Integer.parseInt(Objects.requireNonNull(response.getBody()));
-            System.out.println("Node with IP " + nodeIP + " has ID " + nodeID);
-            return nodeID;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to find ID of node with IP " + nodeIP);
-        }
-    }
-
-    /**
-     * Checks if the node with IP address nodeIP owns the file with name fileName
-     * @param nodeIP the IP address of the node
-     * @param fileName the name of the file
-     * @return true if the node owns the file, false otherwise
-     */
-    public static boolean checkIfOwner(String nodeIP, String fileName) {
-        // Create a RestTemplate instance
-        RestTemplate restTemplate = new RestTemplate();
-
-        // Determine the request URL based on the IP address and filename
-        String requestUrl = "http://" + nodeIP + ":" + 8082 + "/client/" + fileName + "/owner";
-
-        try {
-            // Send the HTTP request
-            ResponseEntity<Boolean> response = restTemplate.getForEntity(requestUrl, Boolean.class);
-            return Boolean.TRUE.equals(response.getBody());
-        } catch (Exception e) {
-            // Handle any exceptions that may occur during the request
-            e.printStackTrace();
-        }
-        return false;
     }
 }

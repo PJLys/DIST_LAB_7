@@ -16,16 +16,15 @@ import java.util.*;
 
 
 @Service
-public class ReplicationClient implements Runnable{
+public class ReplicationClient implements Runnable {
+    private static final Path local_file_path = Paths.get("").toAbsolutePath().resolve("src/local_files");  //Stores the local files that need to be replicated
+    private static final Path replicated_file_path = Paths.get("").toAbsolutePath().resolve("src/replicated_files");  //Stores the local files that need to be replicated
+    private static final Path log_path = Paths.get("").toAbsolutePath().resolve("src/log_files");  //Stores the local files that need to be replicated
     private static String nodeName;
     private static int nodeID;
     private static String IPAddress;
+    private static ReplicationClient client = null;
     WatchService file_daemon = FileSystems.getDefault().newWatchService();
-    private static final Path local_file_path = Paths.get("").toAbsolutePath().resolve("src/local_files");  //Stores the local files that need to be replicated
-    private static final Path replicated_file_path = Paths.get("").toAbsolutePath().resolve("src/replicated_files");  //Stores the local files that need to be replicated
-
-    private static final Path log_path = Paths.get("").toAbsolutePath().resolve("src/log_files");  //Stores the local files that need to be replicated
-    private static ReplicationClient client=null;
 
     private ReplicationClient() throws IOException {
         try {
@@ -42,6 +41,153 @@ public class ReplicationClient implements Runnable{
             client = new ReplicationClient();
         }
         return client;
+    }
+
+    public static void removeDirectory(Path path) throws IOException {
+        File directory = new File(path.toString());
+        File[] files = directory.listFiles();
+
+        assert files != null;
+        for (File file : files) {
+            Files.deleteIfExists(directory.toPath().resolve(file.getName()));
+        }
+    }
+
+    public static Path getLocalFilePath() {
+        return local_file_path;
+    }
+
+    public static Path getReplicatedFilePath() {
+        return replicated_file_path;
+    }
+
+    public static Path getLogFilePath() {
+        return log_path;
+    }
+
+    public static void sendFileToNode(String filePath, String logPath, String nodeIP, String extra_message) throws IOException {
+        if (filePath.endsWith(".swp")) {
+            return;
+        }
+
+        // Create JSON object from File
+        JSONObject jo = new JSONObject();
+
+        // Get the info of the file
+        Path fileLocation = Path.of(filePath);
+        String fileName = fileLocation.getFileName().toString();
+
+        // Put the payload data in the JSON object
+        jo.put("name", fileName);
+        jo.put("extra_message", extra_message);
+
+        // Only send data if the file still exists
+        if (Objects.equals(extra_message, "ENTRY_DELETE")) {
+            jo.put("data", null);
+        } else {
+            jo.put("data", Base64.getEncoder().encodeToString(Files.readAllBytes(fileLocation)));
+        }
+
+        // Also include the data of the log file when necessary
+        if (logPath == null) {
+            jo.put("log_data", "null");
+        } else {
+            System.out.println("Send log file with it: " + Logger.readLogFileString(logPath));
+            jo.put("log_data", Logger.readLogFileString(logPath));
+        }
+
+        updateFile(jo, nodeIP);
+    }
+
+    public static void updateFile(JSONObject json, String nodeIP) throws IOException {
+        if (Objects.equals(nodeIP, IPAddress)) {
+            System.out.println("Send replicated version of file " + json.get("name") + " with action " + json.get("extra_message") + " to itself");
+            implementUpdate(json, nodeIP);
+        } else {
+            System.out.println("Send replicated version of file " + json.get("name") + " with action " + json.get("extra_message") + " to node with IP " + nodeIP);
+            transmitFileAsJSON(json, nodeIP);
+        }
+    }
+
+    public static void transmitFileAsJSON(JSONObject json, String nodeIP) {
+        String url = "http://" + nodeIP + ":" + 8082 + "/replication/replicateFile";
+        RestTemplate restTemplate = new RestTemplate();
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("name", json.get("name"));
+        requestBody.put("extra_message", json.get("extra_message"));
+        requestBody.put("data", json.get("data"));
+        requestBody.put("log_data", json.get("log_data"));
+
+        // Specify media type
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            restTemplate.postForObject(url, requestEntity, Void.class);
+        } catch (Exception e) {
+            System.out.println("ERROR - posting file throws IOException");
+            System.out.println("\tError Message: " + e.getMessage());
+            System.out.println("\tError Stack Trace: " + Arrays.toString(e.getStackTrace()));
+        }
+    }
+
+    public static void implementUpdate(JSONObject json, String senderIP) throws IOException {
+        String file_name = (String) json.get("name");
+        String extra_message = (String) json.get("extra_message");
+        String data = (String) json.get("data");
+        String file_path = replicated_file_path.resolve(file_name).toString();
+        String log_file_path = log_path.resolve(file_name + ".log").toString();
+
+        System.out.println("Implement update " + extra_message + " of file " + file_name);
+
+        if (Objects.equals(extra_message, "ENTRY_SHUTDOWN_REPLICATE")) {
+            // Store the replicated file
+            byte[] byteArray = Base64.getDecoder().decode(data);
+            FileOutputStream os_file = new FileOutputStream(file_path);
+            os_file.write(byteArray);
+            os_file.close();
+
+            // Edit log: owner has changed
+            Logger.setOwner(log_file_path, nodeID);
+        } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
+            // Store the replicated file
+            byte[] byteArray = Base64.getDecoder().decode(data);
+            FileOutputStream os_file = new FileOutputStream(file_path);
+            os_file.write(byteArray);
+            os_file.close();
+
+            // Check if a log file has been sent
+            String log_data = (String) json.get("log_data");
+            if (log_data == null || log_data.equals("null")) {
+                // Create a new log file
+                List<Integer> replicators = new ArrayList<>();
+                if (Objects.equals(senderIP, IPAddress)) {
+                    replicators.add(DiscoveryClient.getCurrentID());
+                } else {
+                    replicators.add(Client.getNodeIdForIp(senderIP));
+                }
+                Logger.createLogFile(log_file_path, nodeID, replicators);
+            } else {
+                // Log file has been sent -> store it and update the owner
+                Logger.writeJSONString(log_file_path, log_data);
+                Logger.setOwner(log_file_path, nodeID);
+            }
+        } else if (Objects.equals(extra_message, "ENTRY_MODIFY")) {
+            // Store the replicated file
+            byte[] byteArray = Base64.getDecoder().decode(data);
+            FileOutputStream os_file = new FileOutputStream(file_path);
+            os_file.write(byteArray);
+            os_file.close();
+        } else if (Objects.equals(extra_message, "ENTRY_DELETE")) {
+            Files.deleteIfExists(Path.of(file_path));
+            Files.deleteIfExists(Path.of(log_file_path));
+        } else if (Objects.equals(extra_message, "OVERFLOW")) {
+            System.out.println("ERROR - Overflow received when watching for events in the local_files directory!");
+            ClientApplication.failure();
+        }
     }
 
     public void createDirectories() throws IOException {
@@ -81,6 +227,7 @@ public class ReplicationClient implements Runnable{
 
     /**
      * This method is used when an event is detected
+     *
      * @param event detected WatchEvent
      * @return error code
      */
@@ -112,36 +259,14 @@ public class ReplicationClient implements Runnable{
         WatchKey watchKey;
         while (true) {
             watchKey = file_daemon.poll(); // Could use .take() but this blocks the loop
-            if (watchKey!= null) {
-                for (WatchEvent<?> event:watchKey.pollEvents()){
+            if (watchKey != null) {
+                for (WatchEvent<?> event : watchKey.pollEvents()) {
                     event_handler(event);
                 }
                 watchKey.reset();
             }
             Thread.yield();
         }
-    }
-
-    public static void removeDirectory(Path path) throws IOException {
-        File directory = new File(path.toString());
-        File[] files = directory.listFiles();
-
-        assert files != null;
-        for (File file : files) {
-            Files.deleteIfExists(directory.toPath().resolve(file.getName()));
-        }
-    }
-
-    public static Path getLocalFilePath() {
-        return local_file_path;
-    }
-
-    public static Path getReplicatedFilePath() {
-        return replicated_file_path;
-    }
-
-    public static Path getLogFilePath() {
-        return log_path;
     }
 
     // Create files to store on this node
@@ -178,7 +303,7 @@ public class ReplicationClient implements Runnable{
                 String filePath = local_file_path.resolve(fileName).toString();
                 String replicator_loc = NamingClient.findFile(fileName);
                 System.out.println("Send file " + file + " to " + replicator_loc);
-                sendFileToNode( filePath, null, replicator_loc, "ENTRY_CREATE");
+                sendFileToNode(filePath, null, replicator_loc, "ENTRY_CREATE");
             }
         }
     }
@@ -284,76 +409,6 @@ public class ReplicationClient implements Runnable{
         }
     }
 
-    public static void sendFileToNode(String filePath, String logPath, String nodeIP, String extra_message) throws IOException {
-        if (filePath.endsWith(".swp")) {
-            return;
-        }
-
-        // Create JSON object from File
-        JSONObject jo = new JSONObject();
-
-        // Get the info of the file
-        Path fileLocation = Path.of(filePath);
-        String fileName = fileLocation.getFileName().toString();
-
-        // Put the payload data in the JSON object
-        jo.put("name", fileName);
-        jo.put("extra_message", extra_message);
-
-        // Only send data if the file still exists
-        if (Objects.equals(extra_message, "ENTRY_DELETE")) {
-            jo.put("data", null);
-        } else {
-            jo.put("data", Base64.getEncoder().encodeToString(Files.readAllBytes(fileLocation)));
-        }
-
-        // Also include the data of the log file when necessary
-        if (logPath == null) {
-            jo.put("log_data", "null");
-        }
-        else {
-            System.out.println("Send log file with it: " + Logger.readLogFileString(logPath));
-            jo.put("log_data", Logger.readLogFileString(logPath));
-        }
-
-        updateFile(jo, nodeIP);
-    }
-
-    public static void updateFile(JSONObject json, String nodeIP) throws IOException {
-        if (Objects.equals(nodeIP, IPAddress)) {
-            System.out.println("Send replicated version of file " + json.get("name") + " with action " + json.get("extra_message") + " to itself");
-            implementUpdate(json, nodeIP);
-        } else {
-            System.out.println("Send replicated version of file " + json.get("name") + " with action " + json.get("extra_message") + " to node with IP " + nodeIP);
-            transmitFileAsJSON(json, nodeIP);
-        }
-    }
-
-    public static void transmitFileAsJSON(JSONObject json, String nodeIP) {
-        String url = "http://" + nodeIP + ":" + 8082 + "/replication/replicateFile";
-        RestTemplate restTemplate = new RestTemplate();
-
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("name", json.get("name"));
-        requestBody.put("extra_message", json.get("extra_message"));
-        requestBody.put("data", json.get("data"));
-        requestBody.put("log_data", json.get("log_data"));
-
-        // Specify media type
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-
-        try {
-            restTemplate.postForObject(url, requestEntity, Void.class);
-        } catch (Exception e) {
-            System.out.println("ERROR - posting file throws IOException");
-            System.out.println("\tError Message: " + e.getMessage());
-            System.out.println("\tError Stack Trace: " + Arrays.toString(e.getStackTrace()));
-        }
-    }
-
     public boolean fileStoredLocally(String file_name) {
         // Test if the file is locally stored -> send it to the previous node
         File[] localFiles = new File(local_file_path.toString()).listFiles();
@@ -381,63 +436,5 @@ public class ReplicationClient implements Runnable{
     public void replicateFile(JSONObject json, String senderIP) throws IOException {
         System.out.println("Received file " + json.get("name") + " using REST with action " + json.get("extra_message") + " from node with IP address " + senderIP);
         implementUpdate(json, senderIP);
-    }
-
-    public static void implementUpdate(JSONObject json, String senderIP) throws IOException {
-        String file_name = (String) json.get("name");
-        String extra_message = (String) json.get("extra_message");
-        String data = (String) json.get("data");
-        String file_path = replicated_file_path.resolve(file_name).toString();
-        String log_file_path = log_path.resolve(file_name + ".log").toString();
-
-        System.out.println("Implement update " + extra_message + " of file " + file_name);
-
-        if (Objects.equals(extra_message, "ENTRY_SHUTDOWN_REPLICATE")) {
-            // Store the replicated file
-            byte[] byteArray = Base64.getDecoder().decode(data);
-            FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(byteArray);
-            os_file.close();
-
-            // Edit log: owner has changed
-            Logger.setOwner(log_file_path, nodeID);
-        } else if (Objects.equals(extra_message, "ENTRY_CREATE")) {
-            // Store the replicated file
-            byte[] byteArray = Base64.getDecoder().decode(data);
-            FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(byteArray);
-            os_file.close();
-
-            // Check if a log file has been sent
-            String log_data = (String) json.get("log_data");
-            if (log_data == null || log_data.equals("null")) {
-                // Create a new log file
-                List<Integer> replicators = new ArrayList<>();
-                if (Objects.equals(senderIP, IPAddress)) {
-                    replicators.add(DiscoveryClient.getCurrentID());
-                }
-                else {
-                    replicators.add(Client.getNodeIdForIp(senderIP));
-                }
-                Logger.createLogFile(log_file_path, nodeID, replicators);
-            }
-            else {
-                // Log file has been sent -> store it and update the owner
-                Logger.writeJSONString(log_file_path, log_data);
-                Logger.setOwner(log_file_path, nodeID);
-            }
-        } else if (Objects.equals(extra_message, "ENTRY_MODIFY")) {
-            // Store the replicated file
-            byte[] byteArray = Base64.getDecoder().decode(data);
-            FileOutputStream os_file = new FileOutputStream(file_path);
-            os_file.write(byteArray);
-            os_file.close();
-        } else if (Objects.equals(extra_message, "ENTRY_DELETE")) {
-            Files.deleteIfExists(Path.of(file_path));
-            Files.deleteIfExists(Path.of(log_file_path));
-        } else if (Objects.equals(extra_message, "OVERFLOW")) {
-            System.out.println("ERROR - Overflow received when watching for events in the local_files directory!");
-            ClientApplication.failure();
-        }
     }
 }

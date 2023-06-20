@@ -1,8 +1,7 @@
 package dist.group2.agents;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import dist.group2.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 import org.springframework.http.ResponseEntity;
@@ -11,14 +10,13 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Data
 @ToString
-public class FailureAgent implements Serializable, Runnable{
+public class FailureAgent implements Serializable, Runnable {
 
     private final int failingNodeId;
     /**
@@ -54,7 +52,6 @@ public class FailureAgent implements Serializable, Runnable{
         return completedNodes.get(0);
     }
 
-
     @Override
     public void run() {
         System.out.println("<FailureAgent> - Is running");
@@ -78,8 +75,7 @@ public class FailureAgent implements Serializable, Runnable{
                         // Check if the node is the owner himself
                         if (Objects.equals(newOwnerIP, DiscoveryClient.getIPAddress())) {
                             Logger.addReplicator(ReplicationClient.getLogFilePath().resolve(file.getName() + ".log").toString(), DiscoveryClient.getCurrentID());
-                        }
-                        else {
+                        } else {
                             // Determine the request URL based on the IP address and filename
                             String requestUrl = "http://" + newOwnerIP + ":8082/api/" + file.getName() + "/" + DiscoveryClient.getCurrentID();
                             try {
@@ -102,41 +98,17 @@ public class FailureAgent implements Serializable, Runnable{
                 }
             }
 
-            // Check if there are files replicated that originate from the failing node
-            File replicatedFolder = new File(ReplicationClient.getReplicatedFilePath().toUri());
-            File[] replicatedFiles = replicatedFolder.listFiles();
-            Path logPath = ReplicationClient.getLogFilePath();
-
-            assert replicatedFiles != null;
-            for (File file : replicatedFiles) {
-                // Check if the failing node is the owner of the file
-                int ownerID = NamingClient.findFileNodeID(file.getName());
-                if (ownerID == failingNodeId) {
-                    Path logFilePath = logPath.resolve(file.getName() + ".log");
-                    if (Logger.getReplicators(logFilePath.toString()).get(0) == this.failingNodeId) {
-                        File logFile = new File(logFilePath.toUri());
-
-                        if (file.delete() && logFile.delete()) {
-                            System.out.println("Replicated file " + file.getName() + " originates from the failing node -> deleted it and the log file");
-                        }
-                        else {
-                            System.out.println("OPERATION FAILED: Replicated file " + file.getName() + " originates from the failing node -> tried to delete it and the log file locally but failed");
-                        }
-                    }
-                }
-            }
-
             // Update the nextID and previousID of the neighbouring nodes
             if (this.failingNodeId == DiscoveryClient.getPreviousID()) {
                 System.out.println("\n<FailureAgent> - setting previousID of " +
-                        DiscoveryClient.getCurrentID()+ " to "+
+                        DiscoveryClient.getCurrentID() + " to " +
                         NamingClient.getIdPreviousNode(this.failingNodeId));
 
                 DiscoveryClient.setPreviousID(NamingClient.getIdPreviousNode(this.failingNodeId));
             }
             if (this.failingNodeId == DiscoveryClient.getNextID()) {
-                System.out.println("\n<FailureAgent> - setting nextID of "+
-                        DiscoveryClient.getCurrentID()+ " to " +
+                System.out.println("\n<FailureAgent> - setting nextID of " +
+                        DiscoveryClient.getCurrentID() + " to " +
                         NamingClient.getIdNextNode(this.failingNodeId));
 
                 DiscoveryClient.setNextID(NamingClient.getIdNextNode(this.failingNodeId));
@@ -148,6 +120,7 @@ public class FailureAgent implements Serializable, Runnable{
 
     /**
      * If the failure agent has been executed by all nodes in the ring, it can be safely terminated.
+     *
      * @param nextNodeId The ID of the next node in the topology
      * @return True if it can be stopped, false otherwise
      */

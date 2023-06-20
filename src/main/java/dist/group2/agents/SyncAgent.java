@@ -4,7 +4,6 @@ import dist.group2.DiscoveryClient;
 import dist.group2.NamingClient;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
-import org.hibernate.cfg.NotYetImplementedException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -20,31 +19,31 @@ import java.util.*;
 /**
  * This is a sync agent. Its responsibility is to synchronize the files owned by the node with the available
  * files in the network.
+ *
  * @implements Runnable agent will run in a separate thread
  * @implements Serializable the agent has to be transmitted over the network
- *
  * @attribute localFiles holds the names of files on the node and if they're accessible
-*/
+ */
 @Component
 @EnableScheduling
 public class SyncAgent implements Runnable, Serializable {
+    private static SyncAgent instance;
     //Stores a filename with a lock:- If empty ==> No lock
     //                              - If present:  - true ==> No R/W
     //                                             - false ==> only R
     private final Map<String, Optional<Boolean>> networkfiles;
-    private static SyncAgent instance;
-
     /**
      * Counter that keeps track of the failures of the request to the next node. Used to decide when to create a failure agent
      */
     private int failedCounter;
+
     private SyncAgent() {
         this.networkfiles = new HashMap<>();
         this.failedCounter = 0;
     }
 
     public static SyncAgent getAgent() {
-        if (instance==null)
+        if (instance == null)
             instance = new SyncAgent();
         return instance;
     }
@@ -52,7 +51,7 @@ public class SyncAgent implements Runnable, Serializable {
     /**
      * Check for files, and then yield the CPU
      */
-    @Scheduled(fixedDelay =  1000)   // Execute periodically
+    @Scheduled(fixedDelay = 1000)   // Execute periodically
     @Override
     public void run() {
         // Only run if it is not the only node in the system
@@ -64,6 +63,7 @@ public class SyncAgent implements Runnable, Serializable {
 
     /**
      * Used to send the list of the agent over a rest api
+     *
      * @return JSON Formatted localFiles
      */
     public JSONArray localFilesToSend() {
@@ -106,20 +106,18 @@ public class SyncAgent implements Runnable, Serializable {
             response = template.exchange("http://" + nextIP + ":8082/agents/sync", HttpMethod.GET, null, JSONArray.class);
             int statusCode = response.getStatusCode().value();
             failed = statusCode != 200;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             failed = true;
         }
         // If the request failed, increase the failedCounter
         if (failed) {
             System.out.println("Sync request failed");
             this.failedCounter += 10;
-            if (failedCounter > 25) {
+            if (failedCounter > 60) {
                 AgentController.startFailureAgent(DiscoveryClient.getNextID());
                 this.failedCounter = 0;
             }
-        }
-        else {
+        } else {
             JSONArray jsarr = response.getBody();
 
             if (jsarr == null) {
@@ -144,16 +142,17 @@ public class SyncAgent implements Runnable, Serializable {
 
     /**
      * Return the status of the file to the client
+     *
      * @param filename name of requested file
      * @return empty if usable for R/W; false if usable for R; true if unusable
      */
-    public Optional<Boolean> getLock(String filename){
+    public Optional<Boolean> getLock(String filename) {
         try {
             return this.networkfiles.get(filename);
-        } catch (NullPointerException e){
-            System.out.println("The Requested file: "+filename+ " is not present in the repository!\n" +
+        } catch (NullPointerException e) {
+            System.out.println("The Requested file: " + filename + " is not present in the repository!\n" +
                     "Replying with 'true' since this results in the file not being usable\n\n");
-            System.out.println(e.getMessage()+"\n\n");
+            System.out.println(e.getMessage() + "\n\n");
             System.out.println(Arrays.toString(e.getStackTrace()));
         }
         return Optional.of(true);
@@ -161,8 +160,9 @@ public class SyncAgent implements Runnable, Serializable {
 
     /**
      * Update local loc information based on the log of the filename
+     *
      * @param filename name of the file
-     * @param method action that is to be performed on the file
+     * @param method   action that is to be performed on the file
      */
     public void handleLock(String filename, boolean method) {
         if (method) {

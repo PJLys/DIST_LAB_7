@@ -14,12 +14,12 @@ public class NamingClient {
     private static String name = null;
     private static String baseUrl = null;
 
-    public static void setName(String name) {
-        NamingClient.name = name;
+    public static String getName() {
+        return NamingClient.name;
     }
 
-    public static String getName(){
-        return NamingClient.name;
+    public static void setName(String name) {
+        NamingClient.name = name;
     }
 
     public static void setBaseUrl(String baseUrl) {
@@ -53,8 +53,7 @@ public class NamingClient {
         try {
             restTemplate.delete(url);
             System.out.println("<" + name + "> - Deleted node with ID " + nodeId);
-        }
-        catch (RestClientException e) {
+        } catch (RestClientException e) {
             System.out.println("Failed to delete node " + nodeId + " from NS");
         }
     }
