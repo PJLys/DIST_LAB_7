@@ -29,22 +29,22 @@ public class DiscoveryClient {
         return previousID;
     }
 
-    public static String getIPAddress() {
-        return IPAddress;
-    }
-
     public static void setPreviousID(int previousID) {
         DiscoveryClient.previousID = previousID;
         System.out.println("<---> previousID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
     }
 
-    public static void setNextID(int nextID) {
-        DiscoveryClient.nextID = nextID;
-        System.out.println("<---> nextID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
+    public static String getIPAddress() {
+        return IPAddress;
     }
 
     public static int getNextID() {
         return nextID;
+    }
+
+    public static void setNextID(int nextID) {
+        DiscoveryClient.nextID = nextID;
+        System.out.println("<---> nextID changed - previousID: " + previousID + ", thisID: " + hashValue(name) + ", nextID: " + nextID + " <--->");
     }
 
     public static Integer hashValue(String name) {
@@ -179,7 +179,7 @@ public class DiscoveryClient {
 
         // Check if the message comes from another node
         String newNodeIP = RxData.split("\\|")[1];
-        if (!Objects.equals(newNodeIP, this.IPAddress)) {
+        if (!Objects.equals(newNodeIP, IPAddress)) {
             System.out.println(name + " - Received multicast message from other node: " + RxData);
 
             // Wait so the new node has time to start up and the unicast answers follow the answer of the naming server

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 @RestController
-@RequestMapping(path="replication")
+@RequestMapping(path = "replication")
 public class ReplicationController {
     private final ReplicationClient client;
 

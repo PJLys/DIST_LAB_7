@@ -1,24 +1,16 @@
 package dist.group2;
 
 import jakarta.annotation.PreDestroy;
-import net.minidev.json.JSONObject;
 import org.springframework.context.annotation.Bean;
-import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
-import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 
-import java.io.DataInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 @Service
 public class Communicator {

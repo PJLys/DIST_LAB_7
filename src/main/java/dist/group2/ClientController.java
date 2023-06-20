@@ -17,7 +17,7 @@ public class ClientController {
     private final Client client;
 
     @Autowired
-    public ClientController(Client client){
+    public ClientController(Client client) {
         this.client = client;
     }
 
@@ -31,19 +31,19 @@ public class ClientController {
     @GetMapping("{filename}/{request}")
     public byte[] requestFile(@PathVariable("filename") String filename,
                               @PathVariable("request") char request,
-                              @RequestBody String body){
+                              @RequestBody String body) {
         JSONObject data = null;
         JSONParser parser = new JSONParser(1);
-        try{
+        try {
             data = (JSONObject) parser.parse(body);
         } catch (ParseException e) {
             System.out.println("Received message but failed to parse data!");
             System.out.println("\tRaw data received: " + body);
-            System.out.println("\n\tException: \n\t"+e.getMessage());
+            System.out.println("\n\tException: \n\t" + e.getMessage());
             return new byte[0];
         }
 
-        boolean action = request=='w';
+        boolean action = request == 'w';
 
         return client.incomingRequest((String) data.get("node"), filename, action);
     }
